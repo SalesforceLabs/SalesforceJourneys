@@ -145,78 +145,14 @@ export default class SalesforceJourneys extends LightningElement {
             "status": "Published",
             "definitionId": "e16f93c5-022f-4d8b-8f89-5ba0860754f8",
             "scheduledStatus": "Draft"
-        },
-        {
-            "id": "3cdc7a0f-eacd-43c0-b893-e1544d8e341b",
-            "key": "a2f50f56-4e74-adc4-d396-4bd0f2fbfb53",
-            "name": "Post Purhcase Journey",
-            "lastPublishedDate": "2016-11-14T11:32:52",
-            "description": "",
-            "version": 2,
-            "workflowApiVersion": 1.0,
-            "createdDate": "2016-11-14T11:30:39.13",
-            "modifiedDate": "2016-11-14T11:32:52.54",
-            "goals": [],
-            "exits": [],
-            "stats": {
-                "currentPopulation": 112,
-                "cumulativePopulation": 56,
-                "metGoal": 0,
-                "metExitCriteria": 0,
-                "goalPerformance": 0.00
-            },
-            "entryMode": "MultipleEntries",
-            "definitionType": "Multistep",
-            "channel": "",
-            "defaults": {
-                "email": [
-                    "{{Event.ContactEvent-2d0228f2-01c5-2895-6f2a-f33cd746e09a.\"Email\"}}",
-                    "{{Contact.Default.Email}}"
-                ],
-                "properties": {}
-            },
-            "metaData": {},
-            "executionMode": "Production",
-            "categoryId": 726757,
-            "status": "Published",
-            "definitionId": "e16f93c5-022f-4d8b-8f89-5ba0860754f8",
-            "scheduledStatus": "Draft"
-        },
-        {
-            "id": "3cdc7a0f-eacd-43c0-b893-e1544d8e341c",
-            "key": "a2f50f56-4e74-adc4-d396-4bd0f2fbfb53",
-            "name": "Welcome Journey",
-            "lastPublishedDate": "2016-11-14T11:32:52",
-            "description": "",
-            "version": 2,
-            "workflowApiVersion": 1.0,
-            "createdDate": "2016-11-14T11:30:39.13",
-            "modifiedDate": "2016-11-14T11:32:52.54",
-            "goals": [],
-            "exits": [],
-            "stats": {
-                "currentPopulation": 112,
-                "cumulativePopulation": 56,
-                "metGoal": 0,
-                "metExitCriteria": 0,
-                "goalPerformance": 0.00
-            },
-            "entryMode": "MultipleEntries",
-            "definitionType": "Multistep",
-            "channel": "",
-            "defaults": {
-                "email": [
-                    "{{Event.ContactEvent-2d0228f2-01c5-2895-6f2a-f33cd746e09a.\"Email\"}}",
-                    "{{Contact.Default.Email}}"
-                ],
-                "properties": {}
-            },
-            "metaData": {},
-            "executionMode": "Production",
-            "categoryId": 726757,
-            "status": "Published",
-            "definitionId": "e16f93c5-022f-4d8b-8f89-5ba0860754f8",
-            "scheduledStatus": "Draft"
         }
     ]
+
+    // Transform raw data from Marekting Cloud
+    get journeyList() {
+        return this.journeys.map(j => ({
+            ...j,
+            version: `V${j.version}`
+        }));
+    }
 }

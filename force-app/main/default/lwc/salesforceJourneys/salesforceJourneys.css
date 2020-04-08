@@ -1,7 +1,7 @@
 .list {
     display: flex;
     flex-direction: column;
-    max-height: 170px;
+    max-height: 220px;
     overflow: scroll
 }
 
@@ -9,4 +9,13 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+.list-item h2 {
+    font-size: 1.1em;
+}
+
+.badges {
+    display: flex;
+    margin-top: .2rem;
 }
