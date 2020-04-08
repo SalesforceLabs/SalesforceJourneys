@@ -1,0 +1,20 @@
+<template>
+    <lightning-card icon-name="standard:location">
+        <h1 slot="title"><b>Marketing Cloud Journeys</b></h1>
+        <lightning-button-group slot="actions">
+            <lightning-button label="Stop All" icon-name="utility:stop" title="Remove from all journeys"></lightning-button>
+            <lightning-button label="Add" icon-name="utility:play" title="Add to a new journey"></lightning-button>
+        </lightning-button-group>
+        <div class="list slds-p-horizontal_medium">
+            <template for:each={journeys} for:item="journey">
+                <div class="list-item slds-p-vertical_x-small" key={journey.id}>
+                    <div>
+                        <lightning-icon icon-name="action:map" alternative-text="Journey" size="small"></lightning-icon>
+                        <h2>{journey.name}</h2>
+                    </div>
+                    <lightning-button label="Stop" icon-name="utility:stop" title="Remove from this journey"></lightning-button>
+                </div>
+            </template>
+        </div>
+    </lightning-card>
+</template>

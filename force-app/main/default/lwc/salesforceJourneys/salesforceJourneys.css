@@ -1,0 +1,12 @@
+.list {
+    display: flex;
+    flex-direction: column;
+    max-height: 170px;
+    overflow: scroll
+}
+
+.list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
