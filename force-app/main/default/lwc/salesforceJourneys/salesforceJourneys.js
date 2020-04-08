@@ -51,7 +51,7 @@ export default class SalesforceJourneys extends LightningElement {
 
     handleRemoveFromJourney() {
         // Remove user from journey here
-        this.showNotification(`${this.prettyObjectName} removed from journey!`, `The ${this.prettyObjectName} has been removed from ${this.journeyForRemoval.name}.`, 'success');
+        this.showNotification(`${this.objectApiName} Removed!`, `The ${this.prettyObjectName} has been removed from ${this.journeyForRemoval.name}.`, 'success');
 
         this.handleDialogClose();
     }
