@@ -8,6 +8,8 @@ export default class SalesforceJourneys extends LightningElement {
 
     journeys = [];
     loading = true;
+    confirmRemovalModalOpen = false;
+    journeyForRemoval;
     @api objectApiName;
     @api contactKeyField;
     @api recordId;
@@ -28,6 +30,10 @@ export default class SalesforceJourneys extends LightningElement {
         return this.recordData.data.fields[this.contactKeyField].value;
     }
 
+    get prettyObjectName() {
+        return this.objectApiName.toLowerCase();
+    }
+
     showNotification(title, message, variant) {
         const evt = new ShowToastEvent({
             title: title,
@@ -36,6 +42,24 @@ export default class SalesforceJourneys extends LightningElement {
         });
         this.dispatchEvent(evt);
     };
+
+    removeUserFromJourney(event) {
+        let journeyId = event.target.dataset.journey;
+        this.journeyForRemoval = this.journeys.find(j => j.id === journeyId);
+        this.confirmRemovalModalOpen = true;
+    }
+
+    handleRemoveFromJourney() {
+        // Remove user from journey here
+        this.showNotification(`${this.prettyObjectName} removed from journey!`, `The ${this.prettyObjectName} has been removed from ${this.journeyForRemoval.name}.`, 'success');
+
+        this.handleDialogClose();
+    }
+
+    handleDialogClose() {
+        this.confirmRemovalModalOpen = false;
+        this.journeyForRemoval = null;
+    }
 
     connectedCallback() {
         this.fieldApiName = `${this.objectApiName}.${this.contactKeyField}`;
