@@ -1,5 +1,5 @@
-import { LightningElement, api } from 'lwc';
-// import { getRecord } from 'lightning/uiRecordApi';
+import { LightningElement, api, wire, track } from 'lwc';
+import { getRecord } from 'lightning/uiRecordApi';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import NO_JOURNEYS_IMAGE from '@salesforce/resourceUrl/noJourneys';
 
@@ -8,9 +8,13 @@ export default class SalesforceJourneys extends LightningElement {
 
     journeys = [];
     loading = true;
+    @api objectApiName;
     @api contactKeyField;
     @api recordId;
+    @track fieldApiName;
 
+    @wire(getRecord, { recordId: '$recordId', fields: '$fieldApiName'})
+    recordData;
 
     // Transform raw data from Marekting Cloud
     get journeyList() {
@@ -18,6 +22,10 @@ export default class SalesforceJourneys extends LightningElement {
             ...j,
             version: `V${j.version}`
         }));
+    }
+
+    get contactKey() {
+        return this.recordData.data.fields[this.contactKeyField].value;
     }
 
     showNotification(title, message, variant) {
@@ -30,8 +38,8 @@ export default class SalesforceJourneys extends LightningElement {
     };
 
     connectedCallback() {
+        this.fieldApiName = `${this.objectApiName}.${this.contactKeyField}`;
         setTimeout(() => {
-            console.log(this.contactKeyField, this.recordId);
             this.journeys = [
                 {
                     "id": "3cdc7a0f-eacd-43c0-b893-e1544d8e341a",
