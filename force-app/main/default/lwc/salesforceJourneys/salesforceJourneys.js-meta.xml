@@ -11,9 +11,11 @@
         <targetConfig targets="lightning__RecordPage">
             <objects>
                 <object>Case</object>
-                <object>Lead</object>
                 <object>Contact</object>
+                <object>Account</object>
+                <object>Lead</object>
             </objects>
+            <property name="contactKeyField" label="Field containing Contact Key" description="Specify which field contains the contact key used by Marketing Cloud to identify the contact." required="true" type="String" default="" datasource="apex://FieldPicklist"></property>
         </targetConfig>
     </targetConfigs>
 </LightningComponentBundle>

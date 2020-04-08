@@ -1,22 +1,37 @@
 <template>
     <lightning-card icon-name="standard:location">
         <h1 slot="title"><b>Marketing Journeys</b></h1>
-        <lightning-button-group slot="actions">
-            <lightning-button label="Stop All" icon-name="utility:stop" title="Remove from all journeys"></lightning-button>
-            <lightning-button label="Add" icon-name="utility:play" title="Add to a new journey"></lightning-button>
-        </lightning-button-group>
+        <lightning-button-menu
+            variant="border-filled"
+            icon-size="x-small"
+            menu-alignment="right"
+            slot="actions"
+            alternative-text="Show menu"
+            if:false={loading} >
+            <lightning-menu-item value="StopAll" label="Stop All Journeys"></lightning-menu-item>
+            <lightning-menu-item value="Add" label="Add To New Journey"></lightning-menu-item>
+        </lightning-button-menu>
         <div class="list slds-p-horizontal_medium">
-            <template for:each={journeyList} for:item="journey">
-                <div class="list-item slds-p-vertical_x-small" key={journey.id}>
-                    <div>
-                        <h2>{journey.name}</h2>
-                        <div class="badges">
-                            <lightning-badge label={journey.status}></lightning-badge>
-                            <lightning-badge label={journey.version}></lightning-badge>
-                        </div>
-                    </div>
-                    <lightning-button label="Stop" icon-name="utility:stop" title="Remove from this journey"></lightning-button>
+            <div class="spinner" if:true={loading}>
+                <lightning-spinner alternative-text="Loading" size="medium" variant="brand"></lightning-spinner>
+            </div>
+            <template if:false={loading}>
+                <div class="empty-list" if:false={journeyList.length}>
+                    <img src={noJourneysImage} class="slds-m-vertical_small" alt="No journeys" />
+                    <p>No journeys yet. Spread some love, add them to a journey!</p>
                 </div>
+                <template for:each={journeyList} for:item="journey" if:true={journeyList.length}>
+                    <div class="list-item slds-p-vertical_x-small" key={journey.id}>
+                        <div>
+                            <h2>{journey.name}</h2>
+                            <div class="badges">
+                                <lightning-badge label={journey.status}></lightning-badge>
+                                <lightning-badge label={journey.version}></lightning-badge>
+                            </div>
+                        </div>
+                        <lightning-button label="Stop" icon-name="utility:stop" title="Remove from this journey"></lightning-button>
+                    </div>
+                </template>
             </template>
         </div>
     </lightning-card>
