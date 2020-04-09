@@ -99,7 +99,7 @@ public with sharing class SalesforceJourneyData {
         requestJson.writeStartArray(); // [
         requestJson.writeStartObject(); // {
         requestJson.writeStringField('ContactKey', userId);
-        requestJson.writeStringField('DefinitionKey ', journeyKey);
+        requestJson.writeStringField('DefinitionKey', journeyKey);
         requestJson.writeFieldName('Versions');
         requestJson.writeStartArray(); // [
         requestJson.writeNumber(version);
