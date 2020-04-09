@@ -27,7 +27,6 @@ public with sharing class SalesforceJourneyData {
             return '';
         }
         //Received a successful response
-        //List<String> listOfJourneys = new List<String>();
         
         JSONParser parser = JSON.createParser(res.getBody());
         
@@ -39,17 +38,23 @@ public with sharing class SalesforceJourneyData {
             if ((parser.getCurrentToken() == JSONToken.FIELD_NAME) && (parser.getText() == 'contactMemberships')) {
                 parser.nextToken();
                 if (parser.getCurrentToken() == JSONToken.START_ARRAY) {
+         			String name = '';
+                    String key = '';
+                    Integer version = 0;
                     while ((parser.nextToken() != null) && (parser.getCurrentToken() != JSONToken.END_ARRAY)) {
                         if ((parser.getCurrentToken() == JSONToken.FIELD_NAME) && (parser.getText() == 'definitionKey')) {
                             parser.nextToken();
-                            //listOfJourneys.add(parser.getText());
                             resultJson.writeStartObject(); // {
-                            resultJson.writeStringField('key', parser.getText());
-                            resultJson.writeStringField('name', getJourneyName(parser.getText()));
+                            key = parser.getText();
+                            resultJson.writeStringField('key', key);
+                            name = getJourneyName(parser.getText());
+                            resultJson.writeStringField('name', name);
                         }
                         if ((parser.getCurrentToken() == JSONToken.FIELD_NAME) && (parser.getText() == 'version')) {
                             parser.nextToken();
-                            resultJson.writeNumberField('version', parser.getIntegerValue());
+                            version = parser.getIntegerValue();
+                            resultJson.writeNumberField('version', version);
+                            resultJson.writeBooleanField('exitingFromJourney', getExitStatus(key, userId, version));
                             resultJson.writeEndObject(); // }
                         }
                     }
@@ -89,9 +94,38 @@ public with sharing class SalesforceJourneyData {
     }
     
     @AuraEnabled
-    public static void ejectFromJourney(String journeyKey, String userId, Integer version) {
+    public static void ejectFromJourney(List<String> journeyKey, List<String> userId, List<Integer> version) {
         HttpRequest req = new HttpRequest();
         req.setEndpoint('callout:Salesforce_Marketing_Cloud/interaction/v1/interactions/contactexit');
+        req.setMethod('POST');
+        req.setHeader('Content-Type', 'application/json');
+        
+        JSONGenerator requestJson = JSON.createGenerator(true);
+        requestJson.writeStartArray(); // [
+        for (Integer i = 0; i < journeyKey.size(); i++) {
+            requestJson.writeStartObject(); // {
+            requestJson.writeStringField('ContactKey', userId[i]);
+            requestJson.writeStringField('DefinitionKey', journeyKey[i]);
+            requestJson.writeFieldName('Versions');
+            requestJson.writeStartArray(); // [
+            requestJson.writeNumber(version[i]);
+            requestJson.writeEndArray(); // ]
+            requestJson.writeEndObject(); // }
+        }
+        requestJson.writeEndArray(); // ]
+        String requestBody = requestJson.getAsString();
+        req.setBody(requestBody);
+        Http http = new Http();
+        HTTPResponse res = http.send(req);
+        if (checkResponseStatus(res.getStatusCode()) == false) {
+            throw new SalesforceJourneyException('An error has occurred while ejecting from journey');
+        }
+    }
+    
+    @AuraEnabled
+    public static Boolean getExitStatus(String journeyKey, String userId, Integer version) {
+        HttpRequest req = new HttpRequest();
+        req.setEndpoint('callout:Salesforce_Marketing_Cloud/interaction/v1/interactions/contactexit/status');
         req.setMethod('POST');
         req.setHeader('Content-Type', 'application/json');
         
@@ -111,8 +145,27 @@ public with sharing class SalesforceJourneyData {
         Http http = new Http();
         HTTPResponse res = http.send(req);
         if (checkResponseStatus(res.getStatusCode()) == false) {
-            throw new SalesforceJourneyException('An error has occurred while ejecting from journey');
+            throw new SalesforceJourneyException('An error has occurred while retrieving the exit status from this journey');
         }
+        
+        JSONParser parser = JSON.createParser(res.getBody());
+        Boolean result = false;
+        while (parser.nextToken() != null) {
+            if ((parser.getCurrentToken() == JSONToken.FIELD_NAME) && (parser.getText() == 'message')) {
+                parser.nextToken();
+                if (parser.getText() == 'Exit process Completed.') {
+                    return false;
+                }
+                if (parser.getText() == 'Exit request received for processing') {
+                    result = true;
+                }
+                if (parser.getText() == 'Exit request Not Found') {
+                    return false;
+                }
+            }
+        }
+        
+        return result;
     }
     
     public static Boolean checkResponseStatus(Integer responseCode) {

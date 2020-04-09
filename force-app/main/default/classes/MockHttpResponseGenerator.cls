@@ -21,6 +21,15 @@ global class MockHttpResponseGenerator implements HttpCalloutMock {
             return res;
         }
         
+        if (req.getEndpoint() == 'callout:Salesforce_Marketing_Cloud/interaction/v1/interactions/contactexit/status') {
+            System.assertEquals('POST', req.getMethod());
+            HttpResponse res = new HttpResponse();
+            res.setHeader('Content-Type', 'application/json');
+            res.setBody('[ {  "contactKey": "pavan1",  "definitionKey": "8c65d3c5-ab49-a7d8-9f51-84b2e08577d1",  "status": [{ "version": 4, "message": "Exit process Completed.", "definitionInstanceId": "1c040ba6-70eb-4ed4-887b-0842c580834a"}  ] }]');
+            res.setStatusCode(200);
+            return res;
+        }
+        
         System.assertEquals('GET', req.getMethod());
 
         HttpResponse res = new HttpResponse();
