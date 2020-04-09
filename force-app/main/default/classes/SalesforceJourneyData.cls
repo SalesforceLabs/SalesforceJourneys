@@ -111,7 +111,7 @@ public with sharing class SalesforceJourneyData {
         Http http = new Http();
         HTTPResponse res = http.send(req);
         if (checkResponseStatus(res.getStatusCode()) == false) {
-            return;
+            throw new SalesforceJourneyException('An error has occurred while ejecting from journey');
         }
     }
     

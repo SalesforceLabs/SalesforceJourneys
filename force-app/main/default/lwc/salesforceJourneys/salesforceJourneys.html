@@ -11,16 +11,16 @@
                 <lightning-spinner alternative-text="Loading" size="medium" variant="brand"></lightning-spinner>
             </div>
             <template if:false={loading}>
-                <div class="empty-list" if:false={journeyList.length}>
+                <div class="empty-list" if:false={journeys.length}>
                     <img src={noJourneysImage} class="slds-m-vertical_small" alt="No journeys" />
                     <p>No journeys yet. Spread some love, add them to a journey!</p>
                 </div>
-                <template for:each={journeyList} for:item="journey" if:true={journeyList.length}>
+                <template for:each={journeys} for:item="journey" if:true={journeys.length}>
                     <div class="list-item slds-p-vertical_x-small" key={journey.id}>
                         <div>
                             <h2>{journey.name}</h2>
                             <div class="badges">
-                                <lightning-badge label={journey.version}></lightning-badge>
+                                <lightning-badge label={journey.prettyVersion}></lightning-badge>
                             </div>
                         </div>
                         <lightning-button label="Stop" icon-name="utility:stop" title="Remove from this journey"
@@ -38,10 +38,10 @@
             <div class="slds-modal__container">
                 <header class="slds-modal__header">
                     <lightning-button-icon class="slds-modal__close" title="Close" icon-name="utility:close"
-                        icon-class="slds-button_icon-inverse" onclick={handleDialogClose}></lightning-button-icon>
+                        icon-class="slds-button_icon-inverse" variant="container" onclick={handleDialogClose}></lightning-button-icon>
 
                     <h2 class="slds-text-heading_medium slds-hyphenate header-string">
-                        Are You Sure?
+                        Confirm Journey Removal
                     </h2>
                 </header>
                 <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
