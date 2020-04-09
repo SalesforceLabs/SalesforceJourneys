@@ -38,4 +38,26 @@ public class SalesforceJourneyTest {
         Boolean result = SalesforceJourneyData.getExitStatus('123', '456', 2);
         System.assertEquals(result, false);
     }
+    
+    @isTest static void testEmptyUserIdInput() {
+        String res = SalesforceJourneyData.getJourneyMembership('');
+        System.assertEquals(res, null);
+    }
+    
+    @isTest static void testInvalidListSizeForEject() {
+        List<String> names = new List<String>{'123'};
+        List<String> users = new List<String>{'abc', 'def'};
+        List<Integer> version = new List<Integer>{2};
+        try {
+        	SalesforceJourneyData.ejectFromJourney(names, users, version);
+        }
+        catch (Exception e) {
+            System.assertEquals(e.getMessage(), 'An error has occurred while ejecting from journey');
+        }
+    }
+    
+    @isTest static void testResponseStatus() {
+        Boolean res = SalesforceJourneyData.checkResponseStatus(400);
+        System.assertEquals(res, false);
+    }
 }

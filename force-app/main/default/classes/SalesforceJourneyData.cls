@@ -87,14 +87,12 @@ public with sharing class SalesforceJourneyData {
         }
         return '';
     }
-    
-    @AuraEnabled
-    public static void getAPITriggeredJourneys() {
-        //should we make this cachable?
-    }
-    
+   
     @AuraEnabled
     public static void ejectFromJourney(List<String> journeyKey, List<String> userId, List<Integer> version) {
+        if ((journeyKey.size() != userId.size()) || (userId.size() != version.size())) {
+            throw new SalesforceJourneyException('An error has occurred while ejecting from journey');
+        }
         HttpRequest req = new HttpRequest();
         req.setEndpoint('callout:Salesforce_Marketing_Cloud/interaction/v1/interactions/contactexit');
         req.setMethod('POST');
@@ -120,10 +118,16 @@ public with sharing class SalesforceJourneyData {
         if (checkResponseStatus(res.getStatusCode()) == false) {
             throw new SalesforceJourneyException('An error has occurred while ejecting from journey');
         }
+        if (res.getBody() != '{"errors": []}') {
+            throw new SalesforceJourneyException('An error has occurred while ejecting from journey');
+        }
     }
     
     @AuraEnabled
     public static Boolean getExitStatus(String journeyKey, String userId, Integer version) {
+        if (String.isBlank(journeyKey) || String.isBlank(userId) || (version < 1)) {
+            throw new SalesforceJourneyException('An error has occurred while getting the exit status'); 
+        }
         HttpRequest req = new HttpRequest();
         req.setEndpoint('callout:Salesforce_Marketing_Cloud/interaction/v1/interactions/contactexit/status');
         req.setMethod('POST');
