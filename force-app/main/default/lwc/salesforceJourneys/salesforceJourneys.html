@@ -4,7 +4,6 @@
         <lightning-button-menu variant="border-filled" icon-size="x-small" menu-alignment="right" slot="actions"
             alternative-text="Show menu" if:false={loading}>
             <lightning-menu-item value="StopAll" label="Stop All Journeys"></lightning-menu-item>
-            <lightning-menu-item value="Add" label="Add To New Journey"></lightning-menu-item>
         </lightning-button-menu>
         <div class="list slds-p-horizontal_medium">
             <div class="spinner" if:true={loading}>
@@ -13,7 +12,7 @@
             <template if:false={loading}>
                 <div class="empty-list" if:false={journeys.length}>
                     <img src={noJourneysImage} class="slds-m-vertical_small" alt="No journeys" />
-                    <p>No journeys yet. Spread some love, add them to a journey!</p>
+                    <p>No journeys yet!</p>
                 </div>
                 <template for:each={journeys} for:item="journey" if:true={journeys.length}>
                     <div class="list-item slds-p-vertical_x-small" key={journey.id}>
