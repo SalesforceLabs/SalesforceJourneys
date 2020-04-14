@@ -5,7 +5,8 @@
             "default": true,
             "package": "Marketing Cloud Journeys for Salesforce",
             "versionName": "ver 0.1",
-            "versionNumber": "0.1.0.NEXT"
+            "versionNumber": "0.1.0.NEXT",
+            "postInstallUrl": "https://quip.com/"
         }
     ],
     "namespace": "mktcloudlabs",
