@@ -23,8 +23,9 @@
                             </div>
                         </div>
                         <lightning-button label="Stop" icon-name="utility:stop" title="Remove from this journey"
-                            data-journey={journey.id} onclick={removeUserFromJourney}>
+                            data-journey={journey.id} onclick={removeUserFromJourney} if:false={journey.exitingFromJourney}>
                         </lightning-button>
+                        <lightning-button label="Stopping…" icon-name="utility:stop" title="Removing from journey" if:true={journey.exitingFromJourney}></lightning-button>
                     </div>
                 </template>
             </template>

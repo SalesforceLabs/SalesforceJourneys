@@ -118,7 +118,9 @@ public with sharing class SalesforceJourneyData {
         if (checkResponseStatus(res.getStatusCode()) == false) {
             throw new SalesforceJourneyException('An error has occurred while ejecting from journey');
         }
-        if (res.getBody() != '{"errors": []}') {
+        Map<String, Object> response = (Map<String, Object>) JSON.deserializeUntyped(res.getBody());
+        List<Object> errors = (List<Object>) response.get('errors');
+        if (errors.size() > 0) {
             throw new SalesforceJourneyException('An error has occurred while ejecting from journey');
         }
     }

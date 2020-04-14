@@ -94,9 +94,9 @@ export default class SalesforceJourneys extends LightningElement {
         this.loading = true;
         this.confirmRemovalModalOpen = false;
         ejectFromJourney({
-            journeyKey: this.journeyForRemoval.key,
-            userId: this.contactKey,
-            version: this.journeyForRemoval.version
+            journeyKey: [this.journeyForRemoval.key],
+            userId: [this.contactKey],
+            version: [this.journeyForRemoval.version]
         })
             .then(() => {
                 this.showNotification(`${this.objectApiName} Removed!`, `The ${this.prettyObjectName} has been removed from ${this.journeyForRemoval.name}.`, 'success');
