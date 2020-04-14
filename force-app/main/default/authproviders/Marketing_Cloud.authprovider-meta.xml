@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AuthProvider xmlns="http://soap.sforce.com/2006/04/metadata">
+    <authorizeUrl>https://mcx2wcqk575pjgdy8j2lbb-65g-1.auth.marketingcloudapis.com/v2/authorize</authorizeUrl>
+    <consumerKey>bjgbglqnjsxxmdaobtl9ndj3</consumerKey>
+    <consumerSecret>p7B80AgYzdnS/Y298hdRRf+UiuBktFw1cEEY92ILatc=</consumerSecret>
+    <friendlyName>Marketing Cloud</friendlyName>
+    <includeOrgIdInIdentifier>false</includeOrgIdInIdentifier>
+    <providerType>OpenIdConnect</providerType>
+    <sendAccessTokenInHeader>true</sendAccessTokenInHeader>
+    <sendClientCredentialsInHeader>false</sendClientCredentialsInHeader>
+    <sendSecretInApis>true</sendSecretInApis>
+    <tokenUrl>https://mcx2wcqk575pjgdy8j2lbb-65g-1.auth.marketingcloudapis.com/v2/token</tokenUrl>
+</AuthProvider>

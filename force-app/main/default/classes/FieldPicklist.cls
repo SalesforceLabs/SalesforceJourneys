@@ -19,7 +19,7 @@ global class FieldPicklist extends VisualEditor.DynamicPickList {
 
         Schema.DescribeSObjectResult objectDescribe = sObj.getDescribe();
         Map<String, Schema.SObjectField> fields = objectDescribe.fields.getMap();
-        for (Schema.SObjectFIeld field: fields.values())
+        for (Schema.SObjectField field: fields.values())
         {
             Schema.DescribeFieldResult result = field.getDescribe();
             String name = result.getName();

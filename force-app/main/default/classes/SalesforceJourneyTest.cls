@@ -28,7 +28,7 @@ public class SalesforceJourneyTest {
         // This causes a fake response to be sent
         // from the class that implements HttpCalloutMock. 
         List<String> journeyName = new List<String>{'123'};
-        List<String> userId = new List<String>{'456'}; 
+        String userId = '456'; 
         List<Integer> versions = new List<Integer>{2};
         SalesforceJourneyData.ejectFromJourney(journeyName, userId, versions);
     }
@@ -46,8 +46,8 @@ public class SalesforceJourneyTest {
     
     @isTest static void testInvalidListSizeForEject() {
         List<String> names = new List<String>{'123'};
-        List<String> users = new List<String>{'abc', 'def'};
-        List<Integer> version = new List<Integer>{2};
+        String users = 'abc';
+        List<Integer> version = new List<Integer>{2, 3};
         try {
         	SalesforceJourneyData.ejectFromJourney(names, users, version);
         }
