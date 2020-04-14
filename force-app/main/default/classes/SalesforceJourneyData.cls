@@ -89,8 +89,8 @@ public with sharing class SalesforceJourneyData {
     }
    
     @AuraEnabled
-    public static void ejectFromJourney(List<String> journeyKey, List<String> userId, List<Integer> version) {
-        if ((journeyKey.size() != userId.size()) || (userId.size() != version.size())) {
+    public static void ejectFromJourney(List<String> journeyKey, String userId, List<Integer> version) {
+        if (journeyKey.size() != version.size()) {
             throw new SalesforceJourneyException('An error has occurred while ejecting from journey');
         }
         HttpRequest req = new HttpRequest();
@@ -102,7 +102,7 @@ public with sharing class SalesforceJourneyData {
         requestJson.writeStartArray(); // [
         for (Integer i = 0; i < journeyKey.size(); i++) {
             requestJson.writeStartObject(); // {
-            requestJson.writeStringField('ContactKey', userId[i]);
+            requestJson.writeStringField('ContactKey', userId);
             requestJson.writeStringField('DefinitionKey', journeyKey[i]);
             requestJson.writeFieldName('Versions');
             requestJson.writeStartArray(); // [

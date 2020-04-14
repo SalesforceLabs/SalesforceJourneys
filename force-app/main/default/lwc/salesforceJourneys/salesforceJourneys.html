@@ -2,8 +2,8 @@
     <lightning-card icon-name="standard:location">
         <h1 slot="title"><b>Marketing Journeys</b></h1>
         <lightning-button-menu variant="border-filled" icon-size="x-small" menu-alignment="right" slot="actions"
-            alternative-text="Show menu" if:false={loading}>
-            <lightning-menu-item value="StopAll" label="Stop All Journeys"></lightning-menu-item>
+            alternative-text="Show menu" if:true={showMenu}>
+            <lightning-menu-item value="StopAll" label="Stop All Journeys" onclick={removeUserFromAllJourneys}></lightning-menu-item>
         </lightning-button-menu>
         <div class="list slds-p-horizontal_medium">
             <div class="spinner" if:true={loading}>
@@ -25,7 +25,7 @@
                         <lightning-button label="Stop" icon-name="utility:stop" title="Remove from this journey"
                             data-journey={journey.id} onclick={removeUserFromJourney} if:false={journey.exitingFromJourney}>
                         </lightning-button>
-                        <lightning-button label="Stopping…" icon-name="utility:stop" title="Removing from journey" if:true={journey.exitingFromJourney}></lightning-button>
+                        <lightning-button label="Stopping…" icon-name="utility:stop" title="Removing from journey" disabled if:true={journey.exitingFromJourney}></lightning-button>
                     </div>
                 </template>
             </template>
@@ -33,7 +33,7 @@
     </lightning-card>
 
     <template if:true={confirmRemovalModalOpen}>
-        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+        <section role="dialog" tabindex="-1" aria-modal="true"
             aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
             <div class="slds-modal__container">
                 <header class="slds-modal__header">
@@ -52,6 +52,32 @@
                 <footer class="slds-modal__footer modal-hidden">
                     <lightning-button label="Cancel" title="Cancel" onclick={handleDialogClose}></lightning-button>
                     <lightning-button variant="destructive" label="Remove" title="Remove from Journey" onclick={handleRemoveFromJourney} class="slds-m-left_x-small"></lightning-button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+    
+    <template if:true={confirmRemovalAllModalOpen}>
+        <section role="dialog" tabindex="-1" aria-modal="true"
+            aria-describedby="modal-content-id-2" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <lightning-button-icon class="slds-modal__close" title="Close" icon-name="utility:close"
+                        icon-class="slds-button_icon-inverse" variant="container" onclick={handleDialogClose}></lightning-button-icon>
+
+                    <h2 class="slds-text-heading_medium slds-hyphenate header-string">
+                        Confirm Removal From All Journeys
+                    </h2>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-2">
+                    Are you sure you would like to remove the {prettyObjectName} from all marketing journeys?<br />
+                    Doing so will stop the {prettyObjectName} from receiving any further communications related to the journeys they are currently in.
+                </div>
+
+                <footer class="slds-modal__footer modal-hidden">
+                    <lightning-button label="Cancel" title="Cancel" onclick={handleDialogClose}></lightning-button>
+                    <lightning-button variant="destructive" label="Remove All" title="Remove from all Journeys" onclick={handleRemoveFromAllJourneys} class="slds-m-left_x-small"></lightning-button>
                 </footer>
             </div>
         </section>
