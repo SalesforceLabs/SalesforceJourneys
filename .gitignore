@@ -35,3 +35,4 @@ ehthumbs.db
 $RECYCLE.BIN/
 
 force-app/main/default/authproviders/
+force-app/main/default/classes/MarketingCloudCredentials*
