@@ -14,6 +14,7 @@
     "sourceApiVersion": "48.0",
     "packageAliases": {
         "Marketing Cloud Journeys for Salesforce": "0Ho3z0000004CW2CAM",
-        "Marketing Cloud Journeys for Salesforce@0.1.0-1": "04t3z000001UPyTAAW"
+        "Marketing Cloud Journeys for Salesforce@0.1.0-1": "04t3z000001UPyTAAW",
+        "Marketing Cloud Journeys for Salesforce@0.1.0-2": "04t3z000001UQNPAA4"
     }
 }
