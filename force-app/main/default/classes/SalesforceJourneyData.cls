@@ -3,7 +3,7 @@ public with sharing class SalesforceJourneyData {
     @AuraEnabled
     public static String getJourneyMembership(String userId) {
         if (String.isBlank(userId)) {
-            return null;
+            return '[]';
         }
 
         // Callout to SFMC to get the list of all journeys a user is in
