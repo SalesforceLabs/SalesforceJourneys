@@ -12,3 +12,4 @@ package.xml
 **/__tests__/**
 
 force-app/main/default/authproviders
+force-app/main/default/namedCredentials
