@@ -14,7 +14,6 @@ global class SFMCAuthJourney extends Auth.AuthProviderPluginClass {
   
     private String authUrl;  
     
-    // URI to get the new access token from concur using the GET verb.
     private String accessTokenUrl; 
     
     // Api name for the custom metadata type created for this auth provider.
