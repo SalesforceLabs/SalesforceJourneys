@@ -32,7 +32,11 @@ global class SFMCAuthJourney extends Auth.AuthProviderPluginClass {
               authUrl = baseurl[0].Base_Url__c + '/v2/authorize';
               CLIENT_ID = baseurl[0].ClientId__c;
           }
-          redirectUri = Url.getSalesforceBaseUrl().toExternalForm() + '/services/authcallback/SFMC_Journeys';
+          String salesforceBaseUrl = Url.getSalesforceBaseUrl().toExternalForm();
+          if (salesforceBaseUrl.startsWith('http:')) {
+              salesforceBaseUrl = salesforceBaseUrl.replaceFirst('http:', 'https:');
+          }
+          redirectUri = salesforceBaseUrl + '/services/authcallback/SFMC_Journeys';
           
           String url = authUrl + '?response_type=code&client_id=' + CLIENT_ID + '&redirect_uri=' + redirecturi + '&state=' + stateToPropagate;
   
@@ -53,7 +57,10 @@ global class SFMCAuthJourney extends Auth.AuthProviderPluginClass {
               CLIENT_SECRET = baseurl[0].ClientSecret__c;
           }
           accessTokenUrl = authProviderConfiguration.get('mktcloudlabs__AuthUrl__c') + '/v2/token';
-          redirectUri = Url.getSalesforceBaseUrl().toExternalForm() + '/services/authcallback/SFMC_Journeys';
+          if (salesforceBaseUrl.startsWith('http:')) {
+              salesforceBaseUrl = salesforceBaseUrl.replaceFirst('http:', 'https:');
+          }
+          redirectUri = salesforceBaseUrl + '/services/authcallback/SFMC_Journeys';
           
           Map<String,String> queryParams = state.queryParameters;
           String code = queryParams.get('code'); 
