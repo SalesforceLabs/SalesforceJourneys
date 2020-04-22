@@ -52,7 +52,7 @@ global class SFMCAuthJourney extends Auth.AuthProviderPluginClass {
               CLIENT_ID = baseurl[0].ClientId__c;
               CLIENT_SECRET = baseurl[0].ClientSecret__c;
           }
-          accessTokenUrl = authProviderConfiguration.get('AuthUrl__c') + '/v2/token';
+          accessTokenUrl = authProviderConfiguration.get('mktcloudlabs__AuthUrl__c') + '/v2/token';
           redirectUri = Url.getSalesforceBaseUrl().toExternalForm() + '/services/authcallback/SFMC_Journeys';
           
           Map<String,String> queryParams = state.queryParameters;
@@ -115,7 +115,7 @@ global class SFMCAuthJourney extends Auth.AuthProviderPluginClass {
               CLIENT_ID = baseurl[0].ClientId__c;
               CLIENT_SECRET = baseurl[0].ClientSecret__c;
           }
-          accessTokenUrl = authProviderConfiguration.get('AuthUrl__c') + '/v2/token';
+          accessTokenUrl = authProviderConfiguration.get('mktcloudlabs__AuthUrl__c') + '/v2/token';
           
           HttpRequest req = new HttpRequest(); 
           req.setEndpoint(accessTokenUrl); 
