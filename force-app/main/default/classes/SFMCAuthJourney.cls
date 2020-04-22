@@ -17,7 +17,7 @@ global class SFMCAuthJourney extends Auth.AuthProviderPluginClass {
     private String accessTokenUrl; 
     
     // Api name for the custom metadata type created for this auth provider.
-    private String customMetadataTypeApiName = 'SFMC_Journeys_Auth__c';
+    private String customMetadataTypeApiName = 'mktcloudlabs__SFMC_Journeys_Auth__c';
     
     global String getCustomMetadataType() {
         return customMetadataTypeApiName;
