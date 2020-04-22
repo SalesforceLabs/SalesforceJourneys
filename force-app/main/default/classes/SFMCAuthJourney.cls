@@ -27,7 +27,7 @@ global class SFMCAuthJourney extends Auth.AuthProviderPluginClass {
       authProviderConfiguration, String stateToPropagate) 
       { 
           authUrl = 'https://mc.login.exacttarget.com/hub-cas/login';
-          SFMC_Journey_Auth_Settings__mdt[] baseurl = [SELECT Base_Url__c, ClientId__c FROM SFMC_Journey_Auth_Settings__mdt WHERE Label = 'Config'];
+          SFMC_Journeys_Auth_Settings__mdt[] baseurl = [SELECT Base_Url__c, ClientId__c FROM SFMC_Journeys_Auth_Settings__mdt WHERE Label = 'Config'];
           if (baseurl.size() > 0) {
               authUrl = baseurl[0].Base_Url__c + '/v2/authorize';
               CLIENT_ID = baseurl[0].ClientId__c;
@@ -46,7 +46,7 @@ global class SFMCAuthJourney extends Auth.AuthProviderPluginClass {
           // Their responsibility is to return a new object called 
           // AuthProviderTokenResponse. 
           // This will contain an optional accessToken and refreshToken 
-          SFMC_Journey_Auth_Settings__mdt[] baseurl = [SELECT Base_Url__c, ClientId__c, ClientSecret__c FROM SFMC_Journey_Auth_Settings__mdt WHERE Label = 'Config'];
+          SFMC_Journeys_Auth_Settings__mdt[] baseurl = [SELECT Base_Url__c, ClientId__c, ClientSecret__c FROM SFMC_Journeys_Auth_Settings__mdt WHERE Label = 'Config'];
           if (baseurl.size() > 0) {
               authUrl = baseurl[0].Base_Url__c + '/v2/authorize';
               CLIENT_ID = baseurl[0].ClientId__c;
@@ -109,7 +109,7 @@ global class SFMCAuthJourney extends Auth.AuthProviderPluginClass {
       } 
       
       global override Auth.OAuthRefreshResult refresh(Map<String, String> authProviderConfiguration, String refreshToken) {
-          SFMC_Journey_Auth_Settings__mdt[] baseurl = [SELECT Base_Url__c, ClientId__c, ClientSecret__c FROM SFMC_Journey_Auth_Settings__mdt WHERE Label = 'Config'];
+          SFMC_Journeys_Auth_Settings__mdt[] baseurl = [SELECT Base_Url__c, ClientId__c, ClientSecret__c FROM SFMC_Journeys_Auth_Settings__mdt WHERE Label = 'Config'];
           if (baseurl.size() > 0) {
               authUrl = baseurl[0].Base_Url__c + '/v2/authorize';
               CLIENT_ID = baseurl[0].ClientId__c;
