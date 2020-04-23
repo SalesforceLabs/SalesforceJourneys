@@ -35,8 +35,6 @@ global class MockHttpResponseGenerator implements HttpCalloutMock {
             res.setStatusCode(200);
             return res;
         }
-        
-        System.assertEquals('GET', req.getMethod());
 
         HttpResponse res = new HttpResponse();
         res.setHeader('Content-Type', 'application/json');
