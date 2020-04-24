@@ -4,11 +4,7 @@ public class SFMCSetupTests {
         Test.setMock(HttpCalloutMock.class, new MockHttpResponseGenerator());
         SFMCJourneysSetup s = new SFMCJourneysSetup();
         s.username = '123';
-        try {
-            s.getTses();
-        } catch (Exception e) {
-            System.assertEquals(e.getMessage(), 'An error has occured retrieving the Tenant Specific Endpoints');
-        }
+        s.getTses();
         System.assertNotEquals('', s.username);
         System.assertNotEquals('', s.RSSCreateBody);
     }
