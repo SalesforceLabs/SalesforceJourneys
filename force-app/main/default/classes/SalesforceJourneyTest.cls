@@ -41,15 +41,15 @@ public class SalesforceJourneyTest {
     
     @isTest static void testEmptyUserIdInput() {
         String res = SalesforceJourneyData.getJourneyMembership('');
-        System.assertEquals(res, '[]');
+        System.assertEquals(res, null);
     }
     
     @isTest static void testInvalidListSizeForEject() {
-        List<String> names = new List<String>{'123', '456'};
-        String user = 'abc';
-        List<Integer> version = new List<Integer>{2};
+        List<String> names = new List<String>{'123'};
+        String users = 'abc';
+        List<Integer> version = new List<Integer>{2, 3};
         try {
-        	SalesforceJourneyData.ejectFromJourney(names, user, version);
+        	SalesforceJourneyData.ejectFromJourney(names, users, version);
         }
         catch (Exception e) {
             System.assertEquals(e.getMessage(), 'An error has occurred while ejecting from journey');
