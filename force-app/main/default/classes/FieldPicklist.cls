@@ -26,7 +26,7 @@ global class FieldPicklist extends VisualEditor.DynamicPickList {
             String label = result.getLabel();
             Schema.DisplayType type = result.getType();
             
-            if (type == Schema.DisplayType.Reference || type == Schema.DisplayType.ID || type == Schema.DisplayType.String) {
+            if (type == Schema.DisplayType.Reference || type == Schema.DisplayType.ID || type == Schema.DisplayType.String || type == Schema.DisplayType.Email) {
                 VisualEditor.DataRow value = new VisualEditor.DataRow(label, name);
                 values.addRow(value);
             }
