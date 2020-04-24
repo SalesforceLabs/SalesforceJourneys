@@ -57,7 +57,6 @@ global class SFMCAuthJourney extends Auth.AuthProviderPluginClass {
               CLIENT_SECRET = baseurl[0].ClientSecret__c;
           }
           accessTokenUrl = authProviderConfiguration.get('mktcloudlabs__AuthUrl__c') + '/v2/token';
-          String salesforceBaseUrl = Url.getSalesforceBaseUrl().toExternalForm();
           if (salesforceBaseUrl.startsWith('http:')) {
               salesforceBaseUrl = salesforceBaseUrl.replaceFirst('http:', 'https:');
           }
