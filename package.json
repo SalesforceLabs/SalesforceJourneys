@@ -1,8 +1,8 @@
 {
-  "name": "salesforce-app",
+  "name": "marketing-cloud-journeys-for-salesforce",
   "private": true,
   "version": "1.0.0",
-  "description": "Salesforce App",
+  "description": "Marketing Cloud Journeys for Salesforce",
   "scripts": {
     "lint": "npm run lint:lwc",
     "lint:lwc": "eslint force-app/main/default/lwc",
