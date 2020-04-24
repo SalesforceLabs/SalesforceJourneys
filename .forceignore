@@ -10,3 +10,6 @@ package.xml
 
 # LWC Jest
 **/__tests__/**
+
+force-app/main/default/authproviders
+force-app/main/default/namedCredentials

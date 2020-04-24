@@ -86,7 +86,7 @@ public class SFMCJourneysSetup {
         
         //Check if a custom setting record already exists
         //if it does, update it, if it doesn't create it
-        SFMC_Journeys_Auth__c[] c = [SELECT Id, AuthUrl__c, Rest_Url__c, Internal_Name__c FROM SFMC_Journeys_Auth__c WHERE Internal_Name__c = 'SFMC_Journeys_Config' LIMIT 1];
+        CustomAuth__c[] c = [SELECT Id, AuthUrl__c, Rest_Url__c, Internal_Name__c FROM CustomAuth__c WHERE Internal_Name__c = 'SFMC_Journeys_Config' LIMIT 1];
         if (c.size() > 0) {
             //update
             c[0].AuthUrl__c = authurl;
@@ -94,7 +94,7 @@ public class SFMCJourneysSetup {
             update c[0];
         } else {
             //create
-            SFMC_Journeys_Auth__c cauth = new SFMC_Journeys_Auth__c();
+            CustomAuth__c cauth = new CustomAuth__c();
             cauth.AuthUrl__c = authurl;
             cauth.Rest_Url__c = resturl;
             cauth.Name = 'SFMC_Journeys_Config';
@@ -115,7 +115,7 @@ public class SFMCJourneysSetup {
     public void setupAuthProvider() {
         //create the auth provider using the custom setting created earlier
         ApexClass[] plugin = [SELECT Id FROM ApexClass WHERE Name = 'SFMCAuthJourney'];
-        SFMC_Journeys_Auth__c[] cauth = [SELECT Id FROM SFMC_Journeys_Auth__c WHERE Internal_Name__c = 'SFMC_Journeys_Config'];
+        CustomAuth__c[] cauth = [SELECT Id FROM CustomAuth__c WHERE Internal_Name__c = 'SFMC_Journeys_Config'];
 
         if (cauth.size() == 0 || plugin.size() == 0) {
         	throw new SalesforceJourneyException('An error has occured retrieving the Tenant Specific Endpoints');
@@ -157,7 +157,7 @@ public class SFMCJourneysSetup {
     
     public void setupNamedCredentials() {
         //create the named credential using the auth provider created earlier
-        SFMC_Journeys_Auth__c[] cauth = [SELECT Id, Rest_Url__c FROM SFMC_Journeys_Auth__c WHERE Internal_Name__c = 'SFMC_Journeys_Config'];
+        CustomAuth__c[] cauth = [SELECT Id, Rest_Url__c FROM CustomAuth__c WHERE Internal_Name__c = 'SFMC_Journeys_Config'];
         if (cauth.size() == 0) {
         	throw new SalesforceJourneyException('Error: Could not find the custom auth settings');
         }
