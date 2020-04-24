@@ -4,9 +4,9 @@
             "path": "force-app",
             "default": true,
             "package": "Marketing Cloud Journeys for Salesforce",
-            "versionName": "ver 0.1",
-            "versionNumber": "0.1.0.NEXT",
-            "postInstallUrl": "https://quip.com/0VZnASHOGZcd"
+            "versionName": "1.0",
+            "versionNumber": "1.0.0.NEXT",
+            "postInstallUrl": "http://sfdc-labs-nzapponi.s3-website-eu-west-1.amazonaws.com/"
         }
     ],
     "namespace": "mktcloudlabs",
