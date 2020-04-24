@@ -41,7 +41,7 @@ public class SalesforceJourneyTest {
     
     @isTest static void testEmptyUserIdInput() {
         String res = SalesforceJourneyData.getJourneyMembership('');
-        System.assertEquals(res, null);
+        System.assertEquals(res, '[]');
     }
     
     @isTest static void testInvalidListSizeForEject() {
