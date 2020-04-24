@@ -45,7 +45,7 @@ public class SFMCJourneysSetup {
             throw new SalesforceJourneyException('An error has occurred due to a missing user name');
         }
         //Get the base credentials from our custom meta data type and use that to get the users TSEs
-        SFMC_Journeys_Auth_Settings__mdt[] baseurl = [SELECT Base_Url__c, ClientId__c FROM SFMC_Journeys_Auth_Settings__mdt WHERE Label = 'Config'];
+        SFMC_Journey_Auth_Settings__mdt[] baseurl = [SELECT Base_Url__c, ClientId__c FROM SFMC_Journey_Auth_Settings__mdt WHERE Label = 'Config'];
         if (baseurl.size() > 0) {
             endpoint = baseurl[0].Base_Url__c + '/v2/discovery';
         }

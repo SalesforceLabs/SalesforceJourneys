@@ -2,5 +2,5 @@
 <CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
     <label>SFMC Journeys Auth Setting</label>
     <pluralLabel>SFMC Journeys Auth Settings</pluralLabel>
-    <visibility>PackageProtected</visibility>
+    <visibility>Public</visibility>
 </CustomObject>
