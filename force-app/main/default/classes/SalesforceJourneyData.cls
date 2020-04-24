@@ -30,7 +30,7 @@ public with sharing class SalesforceJourneyData {
         HTTPResponse res = http.send(req);
         //check if the request failed
         if (checkResponseStatus(res.getStatusCode()) == false) {
-            return '[]';
+            return '';
         }
         //Received a successful response
         

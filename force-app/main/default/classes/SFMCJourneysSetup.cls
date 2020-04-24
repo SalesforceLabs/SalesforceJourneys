@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
+ * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 public class SFMCJourneysSetup {
     public String username {get;set;}
     public String tseAuth {get;set;}
@@ -109,7 +115,6 @@ public class SFMCJourneysSetup {
         //This should only be done after the custom settings are populated
         this.setupAuthProvider();
         this.setupNamedCredentials();
-        this.generateLoginUrl();
     }
     
     public void setupAuthProvider() {
@@ -130,10 +135,6 @@ public class SFMCJourneysSetup {
             return;
         }
         
-        makeCalloutToCreateAuthProvider(plugin[0].Id, String.valueOf(cauth[0].Id).substring(0, 15));
-    }
-    
-    public void makeCalloutToCreateAuthProvider(String pluginId, String customMetadataTypeRecord) {
         HttpRequest req = new HttpRequest();  
         req.setMethod('POST');   
         req.setHeader('Authorization', 'OAuth ' + UserInfo.getSessionId());        
@@ -146,8 +147,8 @@ public class SFMCJourneysSetup {
         requestJson.writeStringField('developerName', 'SFMC_Journeys');
         requestJson.writeStringField('providerType', 'Custom');
         requestJson.writeStringField('executionUserId', UserInfo.getUserId());
-        requestJson.writeStringField('customMetadataTypeRecord', customMetadataTypeRecord);
-        requestJson.writeStringField('pluginId', pluginId);
+        requestJson.writeStringField('customMetadataTypeRecord', String.valueOf(cauth[0].Id).substring(0, 15));
+        requestJson.writeStringField('pluginId', plugin[0].Id);
 		requestJson.writeEndObject();        
         String requestBody = requestJson.getAsString();
         req.setBody(requestBody);
@@ -162,10 +163,6 @@ public class SFMCJourneysSetup {
         	throw new SalesforceJourneyException('Error: Could not find the custom auth settings');
         }
         
-        makeCalloutToCreateNamedCredential(cauth[0].Rest_Url__c);
-    }
-    
-    public void makeCalloutToCreateNamedCredential(String restUrl) {
         //Upsert named credential, no need to check if it already exists
         HttpRequest req = new HttpRequest(); 
         req.setHeader('Content-Type', 'text/xml');
@@ -185,7 +182,7 @@ public class SFMCJourneysSetup {
                                  '<met:metadata xsi:type="met:NamedCredential">' +
                                     '<met:fullName>Salesforce_Marketing_Cloud</met:fullName>' +
                                     '<met:protocol>Oauth</met:protocol>' +
-                                    '<met:endpoint>' + restUrl + '</met:endpoint>' +
+                                    '<met:endpoint>' + cauth[0].Rest_Url__c + '</met:endpoint>' +
                                     '<met:label>Salesforce_Marketing_Cloud</met:label>' +
                                     '<met:principalType>NamedUser</met:principalType>' +
                                     '<met:authProvider>SFMC_Journeys</met:authProvider>' +
@@ -197,9 +194,7 @@ public class SFMCJourneysSetup {
         req.setBody(body);
         Http http = new Http();
         HTTPResponse res = http.send(req);
-    }
-    
-    public void generateLoginUrl() {
+        
         NamedCredential[] nc = [SELECT Id FROM NamedCredential WHERE MasterLabel = 'Salesforce_Marketing_Cloud'];
         
         this.loginUrl = URL.getSalesforceBaseUrl().toExternalForm() + '/services/auth/xds/SFMC_Journeys?startURL=%2F';
@@ -208,5 +203,6 @@ public class SFMCJourneysSetup {
             loginUrl += String.valueOf(nc[0].Id).substring(0,15);
             loginUrl+= '%3Fisdtp%3Dp1';
         }
+        
     }
 }

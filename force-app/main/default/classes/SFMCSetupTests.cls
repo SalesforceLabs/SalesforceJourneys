@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
+ * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 @isTest
 public class SFMCSetupTests {
     @isTest static void testTses() {
@@ -5,43 +11,10 @@ public class SFMCSetupTests {
         SFMCJourneysSetup s = new SFMCJourneysSetup();
         s.username = '123';
         s.getTses();
+        s.setupAuthProvider();
+        s.generateLoginUrl();
         System.assertNotEquals('', s.username);
         System.assertNotEquals('', s.RSSCreateBody);
-    }
-    
-    @isTest static void testAuthProvider() {
-        Test.setMock(HttpCalloutMock.class, new MockHttpResponseGenerator());
-        SFMCJourneysSetup s = new SFMCJourneysSetup();
-        try {
-            s.setupAuthProvider();
-        } catch(Exception e) {
-            System.assertEquals(e.getMessage(), 'An error has occured retrieving the Tenant Specific Endpoints');
-        }
-        
-        s.makeCalloutToCreateAuthProvider('123', '456');
-    }
-    
-    @isTest static void testNamedCredential() {
-        Test.setMock(HttpCalloutMock.class, new MockHttpResponseGenerator());
-        SFMCJourneysSetup s = new SFMCJourneysSetup();
-        try {
-            s.setupNamedCredentials();
-        } catch(Exception e) {
-            System.assertEquals(e.getMessage(), 'Error: Could not find the custom auth settings');
-        }
-        
-        s.makeCalloutToCreateNamedCredential('123');
-        s.generateLoginUrl();
-    }
-    
-    @isTest static void testSetup() {
-        Test.setMock(HttpCalloutMock.class, new MockHttpResponseGenerator());
-        SFMCJourneysSetup s = new SFMCJourneysSetup();
-        try {
-            s.setUpMetadata();
-        } catch(Exception e) {
-            
-        }
     }
 
 }
