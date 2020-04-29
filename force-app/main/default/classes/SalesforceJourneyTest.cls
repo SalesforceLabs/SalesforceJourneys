@@ -30,7 +30,8 @@ public class SalesforceJourneyTest {
         List<String> journeyName = new List<String>{'123'};
         String userId = '456'; 
         List<Integer> versions = new List<Integer>{2};
-        SalesforceJourneyData.ejectFromJourney(journeyName, userId, versions);
+        Boolean ejectResult = SalesforceJourneyData.ejectFromJourney(journeyName, userId, versions);
+        System.assertEquals(ejectResult, true);
     }
     
     @isTest static void testExitStatus() {
@@ -49,7 +50,7 @@ public class SalesforceJourneyTest {
         String users = 'abc';
         List<Integer> version = new List<Integer>{2, 3};
         try {
-        	SalesforceJourneyData.ejectFromJourney(names, users, version);
+        	Boolean result = SalesforceJourneyData.ejectFromJourney(names, users, version);
         }
         catch (Exception e) {
             System.assertEquals(e.getMessage(), 'An error has occurred while ejecting from journey');

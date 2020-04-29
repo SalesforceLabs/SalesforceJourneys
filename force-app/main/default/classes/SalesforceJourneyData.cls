@@ -89,7 +89,7 @@ public with sharing class SalesforceJourneyData {
     }
    
     @AuraEnabled
-    public static void ejectFromJourney(List<String> journeyKey, String userId, List<Integer> version) {
+    public static Boolean ejectFromJourney(List<String> journeyKey, String userId, List<Integer> version) {
         if (journeyKey.size() != version.size()) {
             throw new SalesforceJourneyException('An error has occurred while ejecting from journey');
         }
@@ -123,6 +123,8 @@ public with sharing class SalesforceJourneyData {
         if (errors.size() > 0) {
             throw new SalesforceJourneyException('An error has occurred while ejecting from journey');
         }
+
+        return true;
     }
     
     @AuraEnabled
