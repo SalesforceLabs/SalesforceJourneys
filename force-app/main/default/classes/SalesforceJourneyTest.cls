@@ -6,7 +6,7 @@
  */
 @isTest
 public class SalesforceJourneyTest {
-     @isTest static void testCallout() {
+        @isTest static void testCallout() {
         // Set mock callout class 
         Test.setMock(HttpCalloutMock.class, new MockHttpResponseGenerator());
         
@@ -28,6 +28,14 @@ public class SalesforceJourneyTest {
         }
         resultJson.writeEndArray();
         System.assertEquals(resultJson.getAsString(), res);
+    }
+    
+    @isTest static void testJsonCreation() {
+        SalesforceJourneyData.resultJson = JSON.createGenerator(true);
+        
+        Test.setMock(HttpCalloutMock.class, new MockHttpResponseGenerator());
+        
+        SalesforceJourneyData.checkJourneyMembershipWithNamedCredential('123', '456');
     }
     
     @isTest static void testEjectFromJourney() {

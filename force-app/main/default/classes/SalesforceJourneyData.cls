@@ -6,75 +6,79 @@
  */
 public with sharing class SalesforceJourneyData {
     
+    public static JSONGenerator resultJson;
+    
     @AuraEnabled
     public static String getJourneyMembership(String userId) {
         if (String.isBlank(userId)) {
             return '[]';
         }
-
-        JSONGenerator resultJson = JSON.createGenerator(true);
-            
+        resultJson = JSON.createGenerator(true);
         resultJson.writeStartArray(); // [
         // Callout to SFMC to get the list of all journeys a user is in
         NamedCredential[] credentials = [SELECT Id, DeveloperName FROM NamedCredential WHERE DeveloperName LIKE 'Salesforce_Marketing_Cloud%'];
         for (NamedCredential credential : credentials) {
-            HttpRequest req = new HttpRequest();
-            req.setEndpoint('callout:' + credential.DeveloperName + '/interaction/v1/interactions/contactMembership');
-            req.setMethod('POST');
-            req.setHeader('Content-Type', 'application/json');
-            JSONGenerator requestJson = JSON.createGenerator(true);
-            requestJson.writeStartObject();
-            requestJson.writeFieldName('ContactKeyList');
-            requestJson.writeStartArray();
-            requestJson.writeString(userId);
-            requestJson.writeEndArray();
-            requestJson.writeEndObject();
-            String requestBody = requestJson.getAsString();
-            req.setBody(requestBody);
-            Http http = new Http();
-            HTTPResponse res = http.send(req);
-            //check if the request failed
-            if (checkResponseStatus(res.getStatusCode()) == false) {
-                return '';
-            }
-            //Received a successful response
-            
-            JSONParser parser = JSON.createParser(res.getBody());
-            
-            
-            //parse the JSON response to get the values in Contact Membership
-            while (parser.nextToken() != null) {
-                if ((parser.getCurrentToken() == JSONToken.FIELD_NAME) && (parser.getText() == 'contactMemberships')) {
-                    parser.nextToken();
-                    if (parser.getCurrentToken() == JSONToken.START_ARRAY) {
-                         String name = '';
-                        String key = '';
-                        Integer version = 0;
-                        while ((parser.nextToken() != null) && (parser.getCurrentToken() != JSONToken.END_ARRAY)) {
-                            if ((parser.getCurrentToken() == JSONToken.FIELD_NAME) && (parser.getText() == 'definitionKey')) {
-                                parser.nextToken();
-                                resultJson.writeStartObject(); // {
-                                key = parser.getText();
-                                resultJson.writeStringField('key', key);
-                                name = getJourneyName(parser.getText(), credential.developerName);
-                                resultJson.writeStringField('name', name);
-                                resultJson.writeStringField('namedCredential', credential.developerName);
-                            }
-                            if ((parser.getCurrentToken() == JSONToken.FIELD_NAME) && (parser.getText() == 'version')) {
-                                parser.nextToken();
-                                version = parser.getIntegerValue();
-                                resultJson.writeNumberField('version', version);
-                                resultJson.writeBooleanField('exitingFromJourney', getExitStatus(key, userId, version, credential.developerName));
-                                resultJson.writeEndObject(); // }
-                            }
+            checkJourneyMembershipWithNamedCredential(credential.DeveloperName, userId);
+        }
+        resultJson.writeEndArray(); // ]
+        return resultJson.getAsString();
+    }
+    
+    @AuraEnabled 
+    public static void checkJourneyMembershipWithNamedCredential(String credential, String userId) {
+        HttpRequest req = new HttpRequest();
+        req.setEndpoint('callout:' + credential + '/interaction/v1/interactions/contactMembership');
+        req.setMethod('POST');
+        req.setHeader('Content-Type', 'application/json');
+        JSONGenerator requestJson = JSON.createGenerator(true);
+        requestJson.writeStartObject();
+        requestJson.writeFieldName('ContactKeyList');
+        requestJson.writeStartArray();
+        requestJson.writeString(userId);
+        requestJson.writeEndArray();
+        requestJson.writeEndObject();
+        String requestBody = requestJson.getAsString();
+        req.setBody(requestBody);
+        Http http = new Http();
+        HTTPResponse res = http.send(req);
+        //check if the request failed
+        if (checkResponseStatus(res.getStatusCode()) == false) {
+            return;
+        }
+        //Received a successful response
+        
+        JSONParser parser = JSON.createParser(res.getBody());
+        
+        
+        //parse the JSON response to get the values in Contact Membership
+        while (parser.nextToken() != null) {
+            if ((parser.getCurrentToken() == JSONToken.FIELD_NAME) && (parser.getText() == 'contactMemberships')) {
+                parser.nextToken();
+                if (parser.getCurrentToken() == JSONToken.START_ARRAY) {
+                    String name = '';
+                    String key = '';
+                    Integer version = 0;
+                    while ((parser.nextToken() != null) && (parser.getCurrentToken() != JSONToken.END_ARRAY)) {
+                        if ((parser.getCurrentToken() == JSONToken.FIELD_NAME) && (parser.getText() == 'definitionKey')) {
+                            parser.nextToken();
+                            resultJson.writeStartObject(); // {
+                            key = parser.getText();
+                            resultJson.writeStringField('key', key);
+                            name = getJourneyName(parser.getText(), credential);
+                            resultJson.writeStringField('name', name);
+                            resultJson.writeStringField('namedCredential', credential);
+                        }
+                        if ((parser.getCurrentToken() == JSONToken.FIELD_NAME) && (parser.getText() == 'version')) {
+                            parser.nextToken();
+                            version = parser.getIntegerValue();
+                            resultJson.writeNumberField('version', version);
+                            resultJson.writeBooleanField('exitingFromJourney', getExitStatus(key, userId, version, credential));
+                            resultJson.writeEndObject(); // }
                         }
                     }
                 }
             }
         }
-        resultJson.writeEndArray(); // ]
-        
-        return resultJson.getAsString();
     }
     
     @AuraEnabled
