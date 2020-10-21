@@ -4,14 +4,15 @@
             "path": "force-app",
             "default": true,
             "package": "Marketing Cloud Journeys for Salesforce",
-            "versionName": "1.0",
-            "versionNumber": "1.0.0.NEXT",
+            "versionName": "1.1",
+            "versionNumber": "1.1.0.NEXT",
+            "ancestorId": "Marketing Cloud Journeys for Salesforce@1.0.0-2",
             "postInstallUrl": "http://sfdc-labs-nzapponi.s3-website-eu-west-1.amazonaws.com/"
         }
     ],
     "namespace": "mktcloudlabs",
     "sfdcLoginUrl": "https://login.salesforce.com",
-    "sourceApiVersion": "48.0",
+    "sourceApiVersion": "49.0",
     "packageAliases": {
         "Marketing Cloud Journeys for Salesforce": "0Ho3z0000004CW2CAM",
         "Marketing Cloud Journeys for Salesforce@0.1.0-1": "04t3z000001UPyTAAW",

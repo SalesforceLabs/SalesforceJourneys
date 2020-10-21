@@ -166,7 +166,18 @@ export default class SalesforceJourneys extends LightningElement {
         this.journeyForRemoval = null;
     };
 
+    migrateOldConfigs() {
+        if (this.supportEject === undefined) {
+            this.supportEject = true;
+        }
+
+        if (this.journeyStats === undefined) {
+            this.journeyStats = false;
+        }
+    }
+
     connectedCallback() {
         this.fieldApiName = `${this.objectApiName}.${this.contactKeyField}`;
+        this.migrateOldConfigs();
     };
 }
