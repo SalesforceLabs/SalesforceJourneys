@@ -12,70 +12,75 @@ public with sharing class SalesforceJourneyData {
             return '[]';
         }
 
-        // Callout to SFMC to get the list of all journeys a user is in
-        HttpRequest req = new HttpRequest();
-        req.setEndpoint('callout:Salesforce_Marketing_Cloud/interaction/v1/interactions/contactMembership');
-        req.setMethod('POST');
-        req.setHeader('Content-Type', 'application/json');
-        JSONGenerator requestJson = JSON.createGenerator(true);
-        requestJson.writeStartObject();
-        requestJson.writeFieldName('ContactKeyList');
-        requestJson.writeStartArray();
-        requestJson.writeString(userId);
-        requestJson.writeEndArray();
-        requestJson.writeEndObject();
-        String requestBody = requestJson.getAsString();
-        req.setBody(requestBody);
-        Http http = new Http();
-        HTTPResponse res = http.send(req);
-        //check if the request failed
-        if (checkResponseStatus(res.getStatusCode()) == false) {
-            return '';
-        }
-        //Received a successful response
-        
-        JSONParser parser = JSON.createParser(res.getBody());
-        
         JSONGenerator resultJson = JSON.createGenerator(true);
-        
+            
         resultJson.writeStartArray(); // [
-        //parse the JSON response to get the values in Contact Membership
-        while (parser.nextToken() != null) {
-            if ((parser.getCurrentToken() == JSONToken.FIELD_NAME) && (parser.getText() == 'contactMemberships')) {
-                parser.nextToken();
-                if (parser.getCurrentToken() == JSONToken.START_ARRAY) {
-         			String name = '';
-                    String key = '';
-                    Integer version = 0;
-                    while ((parser.nextToken() != null) && (parser.getCurrentToken() != JSONToken.END_ARRAY)) {
-                        if ((parser.getCurrentToken() == JSONToken.FIELD_NAME) && (parser.getText() == 'definitionKey')) {
-                            parser.nextToken();
-                            resultJson.writeStartObject(); // {
-                            key = parser.getText();
-                            resultJson.writeStringField('key', key);
-                            name = getJourneyName(parser.getText());
-                            resultJson.writeStringField('name', name);
-                        }
-                        if ((parser.getCurrentToken() == JSONToken.FIELD_NAME) && (parser.getText() == 'version')) {
-                            parser.nextToken();
-                            version = parser.getIntegerValue();
-                            resultJson.writeNumberField('version', version);
-                            resultJson.writeBooleanField('exitingFromJourney', getExitStatus(key, userId, version));
-                            resultJson.writeEndObject(); // }
+        // Callout to SFMC to get the list of all journeys a user is in
+        NamedCredential[] credentials = [SELECT Id, DeveloperName FROM NamedCredential WHERE DeveloperName LIKE 'Salesforce_Marketing_Cloud%'];
+        for (NamedCredential credential : credentials) {
+            HttpRequest req = new HttpRequest();
+            req.setEndpoint('callout:' + credential.DeveloperName + '/interaction/v1/interactions/contactMembership');
+            req.setMethod('POST');
+            req.setHeader('Content-Type', 'application/json');
+            JSONGenerator requestJson = JSON.createGenerator(true);
+            requestJson.writeStartObject();
+            requestJson.writeFieldName('ContactKeyList');
+            requestJson.writeStartArray();
+            requestJson.writeString(userId);
+            requestJson.writeEndArray();
+            requestJson.writeEndObject();
+            String requestBody = requestJson.getAsString();
+            req.setBody(requestBody);
+            Http http = new Http();
+            HTTPResponse res = http.send(req);
+            //check if the request failed
+            if (checkResponseStatus(res.getStatusCode()) == false) {
+                return '';
+            }
+            //Received a successful response
+            
+            JSONParser parser = JSON.createParser(res.getBody());
+            
+            
+            //parse the JSON response to get the values in Contact Membership
+            while (parser.nextToken() != null) {
+                if ((parser.getCurrentToken() == JSONToken.FIELD_NAME) && (parser.getText() == 'contactMemberships')) {
+                    parser.nextToken();
+                    if (parser.getCurrentToken() == JSONToken.START_ARRAY) {
+                         String name = '';
+                        String key = '';
+                        Integer version = 0;
+                        while ((parser.nextToken() != null) && (parser.getCurrentToken() != JSONToken.END_ARRAY)) {
+                            if ((parser.getCurrentToken() == JSONToken.FIELD_NAME) && (parser.getText() == 'definitionKey')) {
+                                parser.nextToken();
+                                resultJson.writeStartObject(); // {
+                                key = parser.getText();
+                                resultJson.writeStringField('key', key);
+                                name = getJourneyName(parser.getText(), credential.developerName);
+                                resultJson.writeStringField('name', name);
+                                resultJson.writeStringField('namedCredential', credential.developerName);
+                            }
+                            if ((parser.getCurrentToken() == JSONToken.FIELD_NAME) && (parser.getText() == 'version')) {
+                                parser.nextToken();
+                                version = parser.getIntegerValue();
+                                resultJson.writeNumberField('version', version);
+                                resultJson.writeBooleanField('exitingFromJourney', getExitStatus(key, userId, version, credential.developerName));
+                                resultJson.writeEndObject(); // }
+                            }
                         }
                     }
                 }
             }
         }
-        
         resultJson.writeEndArray(); // ]
+        
         return resultJson.getAsString();
     }
     
     @AuraEnabled
-    public static String getJourneyName(String journeyKey) {
+    public static String getJourneyName(String journeyKey, String namedCredential) {
         HttpRequest req = new HttpRequest();
-        req.setEndpoint('callout:Salesforce_Marketing_Cloud/interaction/v1/interactions/key:' + journeyKey);
+        req.setEndpoint('callout:' + namedCredential + '/interaction/v1/interactions/key:' + journeyKey);
         req.setMethod('GET');
         Http http = new Http();
         HTTPResponse res = http.send(req);
@@ -95,18 +100,18 @@ public with sharing class SalesforceJourneyData {
     }
    
     @AuraEnabled
-    public static Boolean ejectFromJourney(List<String> journeyKey, String userId, List<Integer> version) {
+    public static Boolean ejectFromJourney(List<String> journeyKey, String userId, List<Integer> version, List<String> namedCredential) {
         if (journeyKey.size() != version.size()) {
             throw new SalesforceJourneyException('An error has occurred while ejecting from journey');
         }
-        HttpRequest req = new HttpRequest();
-        req.setEndpoint('callout:Salesforce_Marketing_Cloud/interaction/v1/interactions/contactexit');
-        req.setMethod('POST');
-        req.setHeader('Content-Type', 'application/json');
-        
-        JSONGenerator requestJson = JSON.createGenerator(true);
-        requestJson.writeStartArray(); // [
         for (Integer i = 0; i < journeyKey.size(); i++) {
+            HttpRequest req = new HttpRequest();
+            req.setEndpoint('callout:' + namedCredential[i] + '/interaction/v1/interactions/contactexit');
+            req.setMethod('POST');
+            req.setHeader('Content-Type', 'application/json');
+            
+            JSONGenerator requestJson = JSON.createGenerator(true);
+            requestJson.writeStartArray(); // [
             requestJson.writeStartObject(); // {
             requestJson.writeStringField('ContactKey', userId);
             requestJson.writeStringField('DefinitionKey', journeyKey[i]);
@@ -115,31 +120,30 @@ public with sharing class SalesforceJourneyData {
             requestJson.writeNumber(version[i]);
             requestJson.writeEndArray(); // ]
             requestJson.writeEndObject(); // }
+            requestJson.writeEndArray(); // ]
+            String requestBody = requestJson.getAsString();
+            req.setBody(requestBody);
+            Http http = new Http();
+            HTTPResponse res = http.send(req);
+            if (checkResponseStatus(res.getStatusCode()) == false) {
+                throw new SalesforceJourneyException('An error has occurred while ejecting from journey');
+            }
+            Map<String, Object> response = (Map<String, Object>) JSON.deserializeUntyped(res.getBody());
+            List<Object> errors = (List<Object>) response.get('errors');
+            if (errors.size() > 0) {
+                throw new SalesforceJourneyException('An error has occurred while ejecting from journey');
+            }
         }
-        requestJson.writeEndArray(); // ]
-        String requestBody = requestJson.getAsString();
-        req.setBody(requestBody);
-        Http http = new Http();
-        HTTPResponse res = http.send(req);
-        if (checkResponseStatus(res.getStatusCode()) == false) {
-            throw new SalesforceJourneyException('An error has occurred while ejecting from journey');
-        }
-        Map<String, Object> response = (Map<String, Object>) JSON.deserializeUntyped(res.getBody());
-        List<Object> errors = (List<Object>) response.get('errors');
-        if (errors.size() > 0) {
-            throw new SalesforceJourneyException('An error has occurred while ejecting from journey');
-        }
-
         return true;
     }
     
     @AuraEnabled
-    public static Boolean getExitStatus(String journeyKey, String userId, Integer version) {
+    public static Boolean getExitStatus(String journeyKey, String userId, Integer version, String namedCredential) {
         if (String.isBlank(journeyKey) || String.isBlank(userId) || (version < 1)) {
             throw new SalesforceJourneyException('An error has occurred while getting the exit status'); 
         }
         HttpRequest req = new HttpRequest();
-        req.setEndpoint('callout:Salesforce_Marketing_Cloud/interaction/v1/interactions/contactexit/status');
+        req.setEndpoint('callout:' + namedCredential + '/interaction/v1/interactions/contactexit/status');
         req.setMethod('POST');
         req.setHeader('Content-Type', 'application/json');
         

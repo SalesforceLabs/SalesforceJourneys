@@ -118,7 +118,8 @@ export default class SalesforceJourneys extends LightningElement {
             ejectFromJourney({
                 journeyKey: [this.journeyForRemoval.key],
                 userId: this.contactKey,
-                version: [this.journeyForRemoval.version]
+                version: [this.journeyForRemoval.version], 
+                namedCredential: [this.journeyForRemoval.namedCredential]
             })
                 .then(() => {
                     this.showNotification(`${this.objectApiName} Removed!`, `The ${this.prettyObjectName} has been removed from ${this.journeyForRemoval.name}.`, 'success');
@@ -144,7 +145,8 @@ export default class SalesforceJourneys extends LightningElement {
             ejectFromJourney({
                 journeyKey: journeysForRemoval.map(j => j.key),
                 userId: this.contactKey,
-                version: journeysForRemoval.map(j => j.version)
+                version: journeysForRemoval.map(j => j.version),
+                namedCredential: journeysForRemoval.map(j => j.namedCredential)
             })
                 .then(() => {
                     this.showNotification(`${this.objectApiName} Removed!`, `The ${this.prettyObjectName} has been removed from all journeys.`, 'success');
