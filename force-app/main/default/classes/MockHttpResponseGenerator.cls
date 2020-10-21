@@ -9,7 +9,7 @@ global class MockHttpResponseGenerator implements HttpCalloutMock {
     // Implement this interface method
     global HTTPResponse respond(HTTPRequest req) {
         
-        if (req.getEndpoint() == 'callout:Salesforce_Marketing_Cloud/interaction/v1/interactions/contactexit') {
+        if (req.getEndpoint().contains('/interaction/v1/interactions/contactexit')) {
             System.assertEquals('POST', req.getMethod());
             HttpResponse res = new HttpResponse();
             res.setHeader('Content-Type', 'application/json');
@@ -18,7 +18,7 @@ global class MockHttpResponseGenerator implements HttpCalloutMock {
             return res;
         }
         
-        if (req.getEndpoint() == 'callout:Salesforce_Marketing_Cloud/interaction/v1/interactions/contactMembership') {
+        if (req.getEndpoint().contains('/interaction/v1/interactions/contactMembership')) {
             System.assertEquals('POST', req.getMethod());
             HttpResponse res = new HttpResponse();
             res.setHeader('Content-Type', 'application/json');
@@ -27,7 +27,7 @@ global class MockHttpResponseGenerator implements HttpCalloutMock {
             return res;
         }
         
-        if (req.getEndpoint() == 'callout:Salesforce_Marketing_Cloud/interaction/v1/interactions/contactexit/status') {
+        if (req.getEndpoint().contains('/interaction/v1/interactions/contactexit/status')) {
             System.assertEquals('POST', req.getMethod());
             HttpResponse res = new HttpResponse();
             res.setHeader('Content-Type', 'application/json');

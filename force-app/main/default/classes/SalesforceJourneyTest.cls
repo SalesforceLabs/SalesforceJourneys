@@ -16,12 +16,16 @@ public class SalesforceJourneyTest {
         String res = SalesforceJourneyData.getJourneyMembership('123');
  		JSONGenerator resultJson = JSON.createGenerator(true);
         resultJson.writeStartArray(); // [
-        resultJson.writeStartObject();
-        resultJson.writeStringField('key', '0caa5edd-00df-d909-e50c-18bf82cebb1f');
-        resultJson.writeStringField('name', 'LWC Adventures');
-        resultJson.writeNumberField('version', 2);
-        resultJson.writeBooleanField('exitingFromJourney', false);
-        resultJson.writeEndObject();
+        NamedCredential[] credentials = [SELECT Id, DeveloperName FROM NamedCredential WHERE DeveloperName LIKE 'Salesforce_Marketing_Cloud%'];
+        for (NamedCredential credential : credentials) {
+            resultJson.writeStartObject();
+            resultJson.writeStringField('key', '0caa5edd-00df-d909-e50c-18bf82cebb1f');
+            resultJson.writeStringField('name', 'LWC Adventures');
+            resultJson.writeStringField('namedCredential', credential.DeveloperName);
+            resultJson.writeNumberField('version', 2);
+            resultJson.writeBooleanField('exitingFromJourney', false);
+            resultJson.writeEndObject();
+        }
         resultJson.writeEndArray();
         System.assertEquals(resultJson.getAsString(), res);
     }
@@ -36,13 +40,13 @@ public class SalesforceJourneyTest {
         List<String> journeyName = new List<String>{'123'};
         String userId = '456'; 
         List<Integer> versions = new List<Integer>{2};
-        Boolean ejectResult = SalesforceJourneyData.ejectFromJourney(journeyName, userId, versions);
-        System.assertEquals(ejectResult, true);
+        List<String> namedCredentials = new List<String>{'456'};
+        SalesforceJourneyData.ejectFromJourney(journeyName, userId, versions, namedCredentials);
     }
     
     @isTest static void testExitStatus() {
         Test.setMock(HttpCalloutMock.class, new MockHttpResponseGenerator());
-        Boolean result = SalesforceJourneyData.getExitStatus('123', '456', 2);
+        Boolean result = SalesforceJourneyData.getExitStatus('123', '456', 2, '789');
         System.assertEquals(result, false);
     }
     
@@ -52,11 +56,12 @@ public class SalesforceJourneyTest {
     }
     
     @isTest static void testInvalidListSizeForEject() {
-        List<String> names = new List<String>{'123'};
-        String users = 'abc';
-        List<Integer> version = new List<Integer>{2, 3};
+        List<String> names = new List<String>{'123', '456'};
+        String user = 'abc';
+        List<Integer> version = new List<Integer>{2};
+        List<String> namedCredentials = new List<String>{'789', '101'};
         try {
-        	Boolean result = SalesforceJourneyData.ejectFromJourney(names, users, version);
+        	SalesforceJourneyData.ejectFromJourney(names, user, version, namedCredentials);
         }
         catch (Exception e) {
             System.assertEquals(e.getMessage(), 'An error has occurred while ejecting from journey');
