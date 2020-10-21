@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>48.0</apiVersion>
+    <apiVersion>49.0</apiVersion>
     <isExposed>true</isExposed>
     <description>Manage Salesforce Marketing Cloud Journeys for contacts, leads and cases.</description>
     <masterLabel>Marketing Cloud Journeys</masterLabel>
@@ -16,6 +16,8 @@
                 <object>Lead</object>
             </objects>
             <property name="contactKeyField" label="Field containing Contact Key" description="Specify which field contains the contact key used by Marketing Cloud to identify the contact." required="true" type="String" default="" datasource="apex://FieldPicklist"></property>
+            <property name="supportEject" label="Allow ejecting contacts from journeys" description="Allow users to eject contacts from journeys using this component." type="Boolean" default="true" ></property>
+            <property name="journeyStats" label="Display journey stats" description="Include journey stats in the component" type="Boolean" default="false" ></property>
         </targetConfig>
     </targetConfigs>
 </LightningComponentBundle>

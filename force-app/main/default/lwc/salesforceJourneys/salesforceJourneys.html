@@ -9,10 +9,12 @@
 <template>
     <lightning-card icon-name="standard:location">
         <h1 slot="title"><b>Marketing Journeys</b></h1>
-        <lightning-button-menu variant="border-filled" icon-size="x-small" menu-alignment="right" slot="actions"
-            alternative-text="Show menu" if:true={showMenu}>
-            <lightning-menu-item value="StopAll" label="Stop All Journeys" onclick={removeUserFromAllJourneys}></lightning-menu-item>
-        </lightning-button-menu>
+        <template if:true={supportEject}>
+            <lightning-button-menu variant="border-filled" icon-size="x-small" menu-alignment="right" slot="actions"
+                alternative-text="Show menu" if:true={showMenu}>
+                <lightning-menu-item value="StopAll" label="Stop All Journeys" onclick={removeUserFromAllJourneys}></lightning-menu-item>
+            </lightning-button-menu>
+        </template>
         <div class="list slds-p-horizontal_medium">
             <div class="spinner" if:true={loading}>
                 <lightning-spinner alternative-text="Loading" size="medium" variant="brand"></lightning-spinner>
@@ -30,10 +32,12 @@
                                 <lightning-badge label={journey.prettyVersion}></lightning-badge>
                             </div>
                         </div>
-                        <lightning-button label="Stop" icon-name="utility:stop" title="Remove from this journey"
-                            data-journey={journey.id} onclick={removeUserFromJourney} if:false={journey.exitingFromJourney}>
-                        </lightning-button>
-                        <lightning-button label="Stopping…" icon-name="utility:stop" title="Removing from journey" disabled if:true={journey.exitingFromJourney}></lightning-button>
+                        <template if:true={supportEject}>
+                            <lightning-button label="Stop" icon-name="utility:stop" title="Remove from this journey"
+                                data-journey={journey.id} onclick={removeUserFromJourney} if:false={journey.exitingFromJourney}>
+                            </lightning-button>
+                            <lightning-button label="Stopping…" icon-name="utility:stop" title="Removing from journey" disabled if:true={journey.exitingFromJourney}></lightning-button>
+                        </template>
                     </div>
                 </template>
             </template>

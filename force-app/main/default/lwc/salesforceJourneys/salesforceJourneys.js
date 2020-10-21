@@ -24,6 +24,8 @@ export default class SalesforceJourneys extends LightningElement {
     @api objectApiName;
     @api contactKeyField;
     @api recordId;
+    @api supportEject;
+    @api journeyStats;
     @track fieldApiName;
 
     @wire(getRecord, { recordId: '$recordId', fields: '$fieldApiName' })
@@ -96,58 +98,66 @@ export default class SalesforceJourneys extends LightningElement {
     };
 
     removeUserFromJourney(event) {
-        let journeyId = event.target.dataset.journey;
-        this.journeyForRemoval = this.journeys.find(j => j.id === journeyId);
-        this.confirmRemovalModalOpen = true;
+        if (this.supportEject) {
+            let journeyId = event.target.dataset.journey;
+            this.journeyForRemoval = this.journeys.find(j => j.id === journeyId);
+            this.confirmRemovalModalOpen = true;
+        }
     }
 
     removeUserFromAllJourneys() {
-        this.confirmRemovalAllModalOpen = true;
+        if (this.supportEject) {
+            this.confirmRemovalAllModalOpen = true;
+        }
     }
 
     handleRemoveFromJourney() {
-        this.loading = true;
-        this.confirmRemovalModalOpen = false;
-        ejectFromJourney({
-            journeyKey: [this.journeyForRemoval.key],
-            userId: this.contactKey,
-            version: [this.journeyForRemoval.version]
-        })
-            .then(() => {
-                this.showNotification(`${this.objectApiName} Removed!`, `The ${this.prettyObjectName} has been removed from ${this.journeyForRemoval.name}.`, 'success');
-                return this.getJourneys();
+        if (this.supportEject) {
+            this.loading = true;
+            this.confirmRemovalModalOpen = false;
+            ejectFromJourney({
+                journeyKey: [this.journeyForRemoval.key],
+                userId: this.contactKey,
+                version: [this.journeyForRemoval.version]
             })
-            .catch(error => {
-                console.error(error);
-                this.showNotification('Error', 'An error has occurred while removing from journey. Try again later.', 'error');
-            })
-            .then(() => {
-                this.loading = false;
-                this.journeyForRemoval = null;
-            });
+                .then(() => {
+                    this.showNotification(`${this.objectApiName} Removed!`, `The ${this.prettyObjectName} has been removed from ${this.journeyForRemoval.name}.`, 'success');
+                    return this.getJourneys();
+                })
+                .catch(error => {
+                    console.error(error);
+                    this.showNotification('Error', 'An error has occurred while removing from journey. Try again later.', 'error');
+                })
+                .then(() => {
+                    this.loading = false;
+                    this.journeyForRemoval = null;
+                });
+        }
     };
 
     handleRemoveFromAllJourneys() {
-        let journeysForRemoval = this.journeys.filter(j => !j.exitingFromJourney);
-
-        this.loading = true;
-        this.confirmRemovalAllModalOpen = false;
-        ejectFromJourney({
-            journeyKey: journeysForRemoval.map(j => j.key),
-            userId: this.contactKey,
-            version: journeysForRemoval.map(j => j.version)
-        })
-            .then(() => {
-                this.showNotification(`${this.objectApiName} Removed!`, `The ${this.prettyObjectName} has been removed from all journeys.`, 'success');
-                return this.getJourneys();
+        if (this.supportEject) {
+            let journeysForRemoval = this.journeys.filter(j => !j.exitingFromJourney);
+    
+            this.loading = true;
+            this.confirmRemovalAllModalOpen = false;
+            ejectFromJourney({
+                journeyKey: journeysForRemoval.map(j => j.key),
+                userId: this.contactKey,
+                version: journeysForRemoval.map(j => j.version)
             })
-            .catch(error => {
-                console.error(error);
-                this.showNotification('Error', 'An error has occurred while removing from journey. Try again later.', 'error');
-            })
-            .then(() => {
-                this.loading = false;
-            });
+                .then(() => {
+                    this.showNotification(`${this.objectApiName} Removed!`, `The ${this.prettyObjectName} has been removed from all journeys.`, 'success');
+                    return this.getJourneys();
+                })
+                .catch(error => {
+                    console.error(error);
+                    this.showNotification('Error', 'An error has occurred while removing from journey. Try again later.', 'error');
+                })
+                .then(() => {
+                    this.loading = false;
+                });
+        }
     };
 
     handleDialogClose() {
