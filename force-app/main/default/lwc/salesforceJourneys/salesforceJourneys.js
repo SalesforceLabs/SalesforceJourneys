@@ -25,7 +25,7 @@ export default class SalesforceJourneys extends LightningElement {
     @api contactKeyField;
     @api recordId;
     @api supportEject;
-    @api journeyStats;
+    // @api journeyStats;
     @track fieldApiName;
 
     @wire(getRecord, { recordId: '$recordId', fields: '$fieldApiName' })
@@ -173,9 +173,9 @@ export default class SalesforceJourneys extends LightningElement {
             this.supportEject = true;
         }
 
-        if (this.journeyStats === undefined) {
-            this.journeyStats = false;
-        }
+        // if (this.journeyStats === undefined) {
+        //     this.journeyStats = false;
+        // }
     }
 
     connectedCallback() {
