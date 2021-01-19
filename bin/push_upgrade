@@ -1,0 +1,418 @@
+#!/usr/bin/env node
+
+const { exit } = require('process');
+const readline = require('readline');
+const Writable = require('stream').Writable;
+const soap = require('soap');
+const axios = require('axios');
+const fs = require('fs');
+const { promisify } = require('util');
+const exec = promisify(require('child_process').exec);
+
+// Make sure you update the WSDL file too so that the API versions match.
+const SFDC_API_VERSION = '49.0';
+
+const getUserInput = async (question, password = false) => {
+    let mutableStdout = new Writable({
+        write: function (chunk, encoding, callback) {
+            if (!this.muted) {
+                process.stdout.write(chunk, encoding);
+            }
+            callback();
+        }
+    });
+    mutableStdout.muted = false;
+
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: mutableStdout,
+        terminal: true
+    });
+
+    return new Promise(resolve => {
+        rl.question(question, answer => {
+            resolve(answer.trim());
+            rl.close();
+            if (password) {
+                process.stdout.write('\n');
+            }
+        });
+
+        if (password) {
+            mutableStdout.muted = true;
+        }
+    });
+};
+
+const checkValidIndex = (index, length) => {
+    if (isNaN(index) || index < 0 || index >= length) {
+        throw new Error('Invalid option. Try again');
+    }
+};
+
+const completedStatus = (client, packagePushRequestId, interval = 30000) => {
+    return new Promise((resolve, reject) => {
+        setTimeout(async () => {
+            let response = await client.queryAsync({ query: `SELECT Id, Status FROM PackagePushRequest WHERE Id = '${packagePushRequestId}'` });
+            let records = response[0].result.records;
+            if (records.length === 0) {
+                let err = new Error('Package push request not found while looking for an update.');
+                reject(err);
+            }
+            let status = records[0].Status;
+            console.log(`* Current status: ${status}`);
+            if (status === 'Succeeded') {
+                resolve(true);
+            } else if (status === 'Failed') {
+                reject(new Error(JSON.stringify(records[0], null, 2)));
+            } else {
+                try {
+                    let r = await completedStatus(client, packagePushRequestId, interval);
+                    resolve(r);
+                } catch (err) {
+                    reject(err);
+                }
+            }
+        }, interval);
+    });
+};
+
+const getAllOrgIds = async (client, metadataPackageId, metadataPackageVersionId, queryLocator = null) => {
+    let response;
+    if (!queryLocator) {
+        response = await client.queryAsync({ query: `SELECT Id, OrgKey FROM PackageSubscriber WHERE InstalledStatus = 'i' AND MetadataPackageId = '${metadataPackageId}' AND MetadataPackageVersionId != '${metadataPackageVersionId}'` });
+    } else {
+        response = await client.queryMoreAsync({ queryLocator: queryLocator });
+    }
+    let result = response[0].result;
+    let records = result.records || [];
+    if (!result.done) {
+        let moreRecords = await getAllOrgIds(client, metadataPackageId, metadataPackageVersionId, result.queryLocator);
+        records.push(...moreRecords);
+    }
+    return records;
+};
+
+const bulkCreateRecords = async (instanceUrl, sessionId, object, records) => {
+    const _jobCompleted = (restApi, jobId) => {
+        return new Promise(resolve => {
+            setTimeout(async () => {
+                let { data: result } = await restApi.get(`/services/data/v${SFDC_API_VERSION}/jobs/ingest/${jobId}/`);
+                if (result.state === 'JobComplete' || result.state === 'Failed') {
+                    resolve();
+                } else {
+                    let r = await _jobCompleted(restApi, jobId);
+                    resolve(r);
+                }
+            }, 5000);
+        });
+    };
+
+    const restApi = axios.create({
+        baseURL: instanceUrl,
+        headers: {
+            Authorization: `Bearer ${sessionId}`
+        }
+    });
+
+    // Create job
+    let { data: response } = await restApi.post(`/services/data/v${SFDC_API_VERSION}/jobs/ingest/`, {
+        object: object,
+        contentType: 'CSV',
+        operation: 'insert',
+        lineEnding: 'LF'
+    });
+
+    let requestId = response.id;
+    let contentUrl = response.contentUrl;
+
+    // Prep data
+    let csvHeader = Object.keys(records[0]);
+    let csvBody = records
+        .map(record => {
+            let fields = [];
+            for (let key of csvHeader) {
+                fields.push(record[key]);
+            }
+            return fields.join(',');
+        });
+    let csvContents = `${csvHeader}\n${csvBody.join('\n')}`;
+
+    // Upload data
+    await restApi.put(`/${contentUrl}`, csvContents, {
+        headers: {
+            'Content-Type': 'text/csv',
+            'Accept': 'application/json'
+        }
+    });
+
+    // Start batch
+    await restApi.patch(`/services/data/v${SFDC_API_VERSION}/jobs/ingest/${requestId}/`, {
+        state: 'UploadComplete'
+    });
+
+    // Wait for batch to complete
+    await _jobCompleted(restApi, requestId);
+
+    // Get results
+    let { data: batchResults } = await restApi.get(`/services/data/v${SFDC_API_VERSION}/jobs/ingest/${requestId}/successfulResults/`, {
+        headers: {
+            'Accept': 'text/csv'
+        }
+    });
+
+    return batchResults.split('\n').length - 1; // Removing one for CSV header
+
+};
+
+const main = async () => {
+
+    const client = await soap.createClientAsync('./bin/wsdl.xml');
+
+    const rawWsdl = fs.readFileSync('./bin/wsdl.xml', { encoding: 'utf-8' });
+
+    let serverUrl, sessionId, instanceUrl;
+    try {
+        const wsdlVersionSet = rawWsdl.match(/0DF[A-Za-z0-9]+/g)[0];
+        if (!wsdlVersionSet) {
+            throw new Error('Could not parse version set from WSDL.');
+        }
+
+        let { stdout: sfdxOrgListJson } = await exec('sfdx force:org:list --json --clean --noprompt', { encoding: 'utf-8' });
+        let sfdxOrgList = JSON.parse(sfdxOrgListJson);
+        let devHubs = sfdxOrgList.result.nonScratchOrgs.filter(org => org.isDevHub);
+
+        console.log('The following dev hubs are available through SFDX:\n');
+        let i = 0;
+        let defaultIndex = 0;
+        for (let org of devHubs) {
+            console.log(`[${++i}] ${org.username}`);
+            if (org.isDefaultDevHubUsername) {
+                defaultIndex = i;
+            }
+        }
+
+        let optionNumber = await getUserInput(`\nWhich one would you like to use [${defaultIndex}]? `);
+        if (optionNumber.length === 0) {
+            optionNumber = defaultIndex;
+        }
+        let idx = +optionNumber - 1;
+        checkValidIndex(idx, devHubs.length);
+
+        let selectedOrg = devHubs[idx];
+
+        let { stdout: sfdxOrgInfo } = await exec(`sfdx force:org:display -u ${selectedOrg.username} --json`, { encoding: 'utf-8' });
+        let orgInfo = JSON.parse(sfdxOrgInfo).result;
+
+        sessionId = orgInfo.accessToken;
+        instanceUrl = orgInfo.instanceUrl;
+        serverUrl = `${instanceUrl}/services/Soap/c/${SFDC_API_VERSION}/${orgInfo.id}/${wsdlVersionSet}`;
+    } catch (err) {
+        console.log('Could not use Salesforce DX CLI to authenticate. Using manual auth...');
+        let username = await getUserInput('Enter your Salesforce dev hub username: ');
+        let password = await getUserInput('Enter your Salesforce dev hub password: ', true);
+
+        const loginResult = await client.loginAsync({
+            username: username,
+            password: password
+        });
+
+        serverUrl = loginResult[0].result.serverUrl;
+        sessionId = loginResult[0].result.sessionId;
+        let instanceUrlRegex = /^https:\/\/.*\.salesforce\.com/g;
+        instanceUrl = serverUrl.match(instanceUrlRegex)[0];
+    }
+
+    if (!serverUrl || !sessionId || !instanceUrl) {
+        throw new Error('Authentication data is incomplete!');
+    }
+
+    client.setEndpoint(serverUrl);
+    client.addSoapHeader({
+        SessionHeader: {
+            sessionId: sessionId
+        }
+    }, '', 'tns', '');
+
+    const results = await client.queryAsync({ query: 'SELECT Id, Name, NamespacePrefix FROM MetadataPackage' });
+    let records = results[0].result.records;
+    console.log('The following packages are available in this dev hub:\n');
+    let i = 0;
+    for (let record of records) {
+        console.log(`[${++i}] ${record.Name} (${record.Id})`);
+    }
+
+    let optionNumber = await getUserInput('\nWhich one would you like to upgrade? ');
+    let idx = +optionNumber - 1;
+    checkValidIndex(idx, records.length);
+
+    let metadataPackage = records[idx];
+
+    const versionResults = await client.queryAsync({ query: `SELECT Id, ReleaseState, MajorVersion, MinorVersion, PatchVersion, BuildNumber FROM MetadataPackageVersion WHERE MetadataPackageId = '${metadataPackage.Id}' AND ReleaseState = 'Released'` });
+    let versionRecords = versionResults[0].result.records.sort((a, b) => {
+        let majA = +a.MajorVersion;
+        let minA = +a.MinorVersion;
+        let ptcA = +a.PatchVersion;
+        let bldA = +a.BuildNumber;
+        let majB = +b.MajorVersion;
+        let minB = +b.MinorVersion;
+        let ptcB = +b.PatchVersion;
+        let bldB = +b.BuildNumber;
+
+        if (majA > majB) {
+            return 1;
+        }
+        if (majB > majA) {
+            return -1;
+        }
+        if (minA > minB) {
+            return 1;
+        }
+        if (minB > minA) {
+            return -1;
+        }
+        if (ptcA > ptcB) {
+            return 1;
+        }
+        if (ptcB > ptcA) {
+            return -1;
+        }
+        if (bldA > bldB) {
+            return 1;
+        }
+        if (bldB > bldA) {
+            return -1;
+        }
+        return 0;
+    });
+    console.log('The following package versions have been released:\n');
+    let j = 0;
+    for (let record of versionRecords) {
+        console.log(`[${++j}] ${record.MajorVersion}.${record.MinorVersion}.${record.PatchVersion}-${record.BuildNumber} (${record.Id})`);
+    }
+    let versionOptionNumber = await getUserInput('\nWhich version would you like to upgrade users to? ');
+    idx = +versionOptionNumber - 1;
+    checkValidIndex(idx, versionRecords.length);
+
+    let metadataPackageVersion = versionRecords[idx];
+
+    let target = await getUserInput('Which org(s) would you like to upgrade [one, some, all]? ');
+    let targetOrgRecords;
+    if (target === 'one') {
+        let targetOrgId = await getUserInput('Enter the Org ID that you would like to upgrade: ');
+        let targetOrgResults = await client.queryAsync({ query: `SELECT Id, OrgKey FROM PackageSubscriber WHERE InstalledStatus = 'i' AND MetadataPackageId = '${metadataPackage.Id}' AND MetadataPackageVersionId != '${metadataPackageVersion.Id}' AND OrgKey = '${targetOrgId}'` });
+        targetOrgRecords = targetOrgResults[0].result.records || [];
+    } else if (target === 'some') {
+        let targetOrgIds = await getUserInput('Enter the Org IDs that you would like to upgrade, separated by commas: ');
+        let orgIds = targetOrgIds.split(',').map(o => o.trim());
+        let orgKeyFilter = orgIds
+            .map(orgId => `OrgKey = '${orgId}'`)
+            .join(' OR ');
+        let targetOrgResults = await client.queryAsync({ query: `SELECT Id, OrgKey FROM PackageSubscriber WHERE InstalledStatus = 'i' AND MetadataPackageId = '${metadataPackage.Id}' AND MetadataPackageVersionId != '${metadataPackageVersion.Id}' AND (${orgKeyFilter})` });
+        targetOrgRecords = targetOrgResults[0].result.records || [];
+    } else if (target === 'all') {
+        targetOrgRecords = await getAllOrgIds(client, metadataPackage.Id, metadataPackageVersion.Id);
+
+        let excludeFile = await getUserInput('If you would like to provide a list of Org IDs to exclude, enter the file name: ');
+        if (excludeFile.length > 0) {
+            let excludeList = fs.readFileSync(excludeFile, { encoding: 'utf-8' }).split('\n');
+            if (excludeList[0].length !== 15 && excludeList[0].length !== 18) {
+                excludeList = excludeList.slice(1);
+            }
+
+            targetOrgRecords = targetOrgRecords.filter(record => excludeList.indexOf(record.OrgKey) === -1);
+        }
+
+    } else {
+        throw new Error('Invalid option. Try again');
+    }
+
+    if (targetOrgRecords.length === 0) {
+        throw new Error('No orgs eligible for upgrade were found.');
+    }
+    console.log(`\nA total of ${targetOrgRecords.length} orgs will be upgraded. `);
+    let confirmation = await getUserInput('Type \'confirm\' if you wish to start the upgrade now: ');
+
+    if (confirmation !== 'confirm') {
+        console.log('Upgrade cancelled');
+        exit(1);
+    }
+
+    console.log('Creating package push request...');
+
+    let pprResult = await client.createAsync({
+        sObjects: [
+            {
+                attributes: {
+                    'xsi:type': 'PackagePushRequest'
+                },
+                PackageVersionId: metadataPackageVersion.Id
+            }
+        ]
+    });
+
+    if (!pprResult[0].result[0].success) {
+        throw new Error(`Package push request creation failed: ${pprResult[0].result[0].errors[0].message}`);
+    }
+
+    let packagePushRequestId = pprResult[0].result[0].id;
+
+    console.log('Creating package push jobs...');
+
+    let success = 0;
+    if (targetOrgRecords.length > 150) {
+        success = await bulkCreateRecords(instanceUrl, sessionId, 'PackagePushJob', targetOrgRecords.map(record => ({
+            PackagePushRequestId: packagePushRequestId,
+            SubscriberOrganizationKey: record.OrgKey
+        })));
+    } else {
+        let ppjResult = await client.createAsync({
+            sObjects: targetOrgRecords.map(record => ({
+                attributes: {
+                    'xsi:type': 'PackagePushJob'
+                },
+                PackagePushRequestId: packagePushRequestId,
+                SubscriberOrganizationKey: record.OrgKey
+            }))
+        });
+
+        for (let record of ppjResult[0].result) {
+            if (record.success) {
+                success++;
+            } else {
+                console.log(record.errors[0].message);
+            }
+        }
+    }
+
+    if (success === 0) {
+        throw new Error('No orgs have been scheduled for upgrade');
+    }
+    console.log(`Successfully queued ${success} orgs for package upgrade`);
+
+    console.log(`Starting upgrade (${packagePushRequestId})...`);
+    console.log('You can wait here or press CTRL+C to exit. You will receive an email once the upgrade has completed.');
+
+    let startUpgradeResult = await client.updateAsync({
+        sObjects: [
+            {
+                attributes: {
+                    'xsi:type': 'PackagePushRequest'
+                },
+                Id: packagePushRequestId,
+                Status: 'Pending'
+            }
+        ]
+    });
+
+    if (!startUpgradeResult[0].result[0].success) {
+        throw new Error(`Push upgrade start failed: ${startUpgradeResult[0].result[0].errors[0].message}`);
+    }
+
+    console.log('Waiting for the upgrade to be completed...');
+    await completedStatus(client, packagePushRequestId);
+    console.log('Package upgrade successful!');
+
+};
+
+main().catch(err => console.error(err.message));
