@@ -7,6 +7,7 @@
 import { LightningElement, api, wire, track } from 'lwc';
 import { getRecord } from 'lightning/uiRecordApi';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import checkNamedCredentials from '@salesforce/apex/SalesforceJourneyData.checkNamedCredentials';
 import getJourneyMembership from '@salesforce/apex/SalesforceJourneyData.getJourneyMembership';
 import ejectFromJourney from '@salesforce/apex/SalesforceJourneyData.ejectFromJourney';
 
@@ -19,6 +20,7 @@ export default class SalesforceJourneys extends LightningElement {
     loading = true;
     confirmRemovalModalOpen = false;
     confirmRemovalAllModalOpen = false;
+    isConfigured = false;
     journeyForRemoval;
     contactKey;
     @api objectApiName;
@@ -178,8 +180,18 @@ export default class SalesforceJourneys extends LightningElement {
         // }
     }
 
+    checkConfiguration() {
+        this.loading = true;
+        checkNamedCredentials()
+            .then((result) => {
+                this.isConfigured = result;
+                this.loading = false;
+            });
+    }
+
     connectedCallback() {
         this.fieldApiName = `${this.objectApiName}.${this.contactKeyField}`;
         this.migrateOldConfigs();
+        this.checkConfiguration();
     };
 }

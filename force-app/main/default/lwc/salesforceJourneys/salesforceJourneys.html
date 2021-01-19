@@ -20,24 +20,32 @@
                 <lightning-spinner alternative-text="Loading" size="medium" variant="brand"></lightning-spinner>
             </div>
             <template if:false={loading}>
-                <div class="empty-list" if:false={journeys.length}>
-                    <img src={noJourneysImage} class="slds-m-vertical_small" alt="No journeys" />
-                    <p>No journeys yet!</p>
-                </div>
-                <template for:each={journeys} for:item="journey" if:true={journeys.length}>
-                    <div class="list-item slds-p-vertical_x-small" key={journey.id}>
-                        <div>
-                            <h2>{journey.name}</h2>
-                            <div class="badges">
-                                <lightning-badge label={journey.prettyVersion}></lightning-badge>
+                <template if:true={isConfigured}>
+                    <div class="empty-list" if:false={journeys.length}>
+                        <img src={noJourneysImage} class="slds-m-vertical_small" alt="No journeys" />
+                        <p>No journeys yet!</p>
+                    </div>
+                    <template for:each={journeys} for:item="journey" if:true={journeys.length}>
+                        <div class="list-item slds-p-vertical_x-small" key={journey.id}>
+                            <div>
+                                <h2>{journey.name}</h2>
+                                <div class="badges">
+                                    <lightning-badge label={journey.prettyVersion}></lightning-badge>
+                                </div>
                             </div>
+                            <template if:true={supportEject}>
+                                <lightning-button label="Stop" icon-name="utility:stop" title="Remove from this journey"
+                                    data-journey={journey.id} onclick={removeUserFromJourney} if:false={journey.exitingFromJourney}>
+                                </lightning-button>
+                                <lightning-button label="Stopping…" icon-name="utility:stop" title="Removing from journey" disabled if:true={journey.exitingFromJourney}></lightning-button>
+                            </template>
                         </div>
-                        <template if:true={supportEject}>
-                            <lightning-button label="Stop" icon-name="utility:stop" title="Remove from this journey"
-                                data-journey={journey.id} onclick={removeUserFromJourney} if:false={journey.exitingFromJourney}>
-                            </lightning-button>
-                            <lightning-button label="Stopping…" icon-name="utility:stop" title="Removing from journey" disabled if:true={journey.exitingFromJourney}></lightning-button>
-                        </template>
+                    </template>
+                </template>
+                <template if:false={isConfigured}>
+                    <div class="empty-list" if:false={journeys.length}>
+                        <img src={noJourneysImage} class="slds-m-vertical_small" alt="No journeys" />
+                        <p>This component is not yet configured, ask your Salesforce Admin to follow the set up guide!</p>
                     </div>
                 </template>
             </template>

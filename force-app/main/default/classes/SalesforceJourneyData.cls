@@ -7,6 +7,12 @@
 public with sharing class SalesforceJourneyData {
     
     public static JSONGenerator resultJson;
+
+    @AuraEnabled
+    public static boolean checkNamedCredentials(){
+        NamedCredential[] credentials = [SELECT Id, DeveloperName FROM NamedCredential WHERE DeveloperName LIKE 'Salesforce_Marketing_Cloud%'];
+        return credentials.size() > 0;
+    }
     
     @AuraEnabled
     public static String getJourneyMembership(String userId) {

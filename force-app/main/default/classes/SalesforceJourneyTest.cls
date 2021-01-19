@@ -80,4 +80,8 @@ public class SalesforceJourneyTest {
         Boolean res = SalesforceJourneyData.checkResponseStatus(400);
         System.assertEquals(res, false);
     }
+
+    @isTest static void testCheckNamedCredentials() {
+        System.assertEquals(SalesforceJourneyData.checkNamedCredentials(), false);
+    }
 }
