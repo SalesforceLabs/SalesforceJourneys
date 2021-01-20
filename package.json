@@ -24,8 +24,9 @@
   },
   "dependencies": {
     "axios": "^0.21.1",
+    "js-yaml": "^4.0.0",
     "jsforce": "^2.0.0-alpha.12",
-    "soap": "^0.31.0"
+    "soap": "^0.36.0"
   },
   "main": "index.js",
   "repository": {
