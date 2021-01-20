@@ -23,7 +23,7 @@
     "prettier-plugin-apex": "^1.0.0"
   },
   "dependencies": {
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "jsforce": "^2.0.0-alpha.12",
     "soap": "^0.31.0"
   },
